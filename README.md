@@ -5,7 +5,7 @@ Adds **Carrion**, an amorphous flesh monster (original design, procedural tendri
 | Attack | Behaviour |
 |---|---|
 | Tendril Lash | two crossing whip sweeps (left arms, then right) |
-| Grab | tendril shoots out, hoists the victim, squeezes, slams |
+| Grab | tendril shoots out, hoists the victim, squeezes, then slams or hurls |
 | Consume | drags prey into the maw, drains HP, heals and grows on a kill |
 | Web | sticky strand that drags the target in |
 | Acid Spit | 3+2 blob volley, poison and weakness |
@@ -14,6 +14,7 @@ Adds **Carrion**, an amorphous flesh monster (original design, procedural tendri
 | Roar | shockwave, then Strength/Speed frenzy (at 50% and 20% HP) |
 | Mind Control | tendril into a nearby monster, which then fights for Carrion |
 | Harden | spiked carapace: 65% less damage, reflects melee hits |
+| Hydrophilia | no drowning, fast swimming in water |
 | Cloak | invisible when far from prey; striking from cloak does +50% damage |
 
 Growth: 4 stages (bigger, tougher, stronger) from eating/killing. Spawn egg in the creative tab; rare natural overworld spawns.
