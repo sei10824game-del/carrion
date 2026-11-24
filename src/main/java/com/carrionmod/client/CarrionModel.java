@@ -65,6 +65,7 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
         PartDefinition h = r.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.offset(0, 16, -12.5f));
         CubeListBuilder up = CubeListBuilder.create().texOffs(0, 96).addBox(-8, -6, -9, 16, 6, 10)
                 .texOffs(100, 108).addBox(-6.5f, -8, -8, 4, 2.5f, 3.5f).addBox(2.5f, -8, -8, 4, 2.5f, 3.5f)
+                .addBox(-8.8f, -5, -6, 1.4f, 2.2f, 2.2f).addBox(7.4f, -5, -6, 1.4f, 2.2f, 2.2f).addBox(-1.5f, -7.6f, -3, 3, 2, 2.5f)
                 .texOffs(100, 96);
         for (float x : new float[]{-7, -3.5f, 0, 3.5f, 7}) up.addBox(x - 1, 0, -9, 2, 3.8f, 2);
         up.addBox(-8.5f, 0, -4, 1.6f, 3, 2).addBox(6.9f, 0, -4, 1.6f, 3, 2);
