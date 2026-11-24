@@ -113,6 +113,7 @@ public class CarrionEntity extends Monster {
     @Override public float maxUpStep() { return 1.1f * scale(); }
     @Override public boolean causeFallDamage(float f, float m, DamageSource s) { return false; }
     @Override public boolean isPushedByFluid() { return false; }
+    @Override public boolean canBreatheUnderwater() { return true; }
 
     @Override public void onSyncedDataUpdated(EntityDataAccessor<?> k) {
         super.onSyncedDataUpdated(k);
@@ -200,6 +201,10 @@ public class CarrionEntity extends Monster {
     // ---------- main server tick ----------
     @Override protected void customServerAiStep() {
         super.customServerAiStep();
+        if (isInWater()) { // Hydrophilia: swarm-swimming
+            addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 40, 1, false, false));
+            if (tickCount % 4 == 0) sl().sendParticles(ParticleTypes.BUBBLE, getX(), getY() + .8, getZ(), 6, 1, .5, 1, .05);
+        }
         if (cooldown > 0) cooldown--;
         if (recentHurt > 0) recentHurt--;
         if (hardenTicks > 0 && --hardenTicks == 0) { entityData.set(HARDENED, false); removeEffect(MobEffects.MOVEMENT_SLOWDOWN); }
@@ -409,7 +414,8 @@ public class CarrionEntity extends Monster {
                     e.hurt(damageSources().mobAttack(this), (float) dmg(.5));
                     knock(e, e.position().subtract(victim.position()).multiply(1, 0, 1).normalize(), .9, .5);
                 }
-                knock(victim, f, 1.1, .35);
+                if (random.nextBoolean()) { knock(victim, front().scale(1), 3.0, .55); snd(SoundEvents.PLAYER_ATTACK_KNOCKBACK, 1.3f, .5f); } // hurl
+                else knock(victim, f, 1.1, .35);
             }
         } else {
             // pull into the maw and devour
