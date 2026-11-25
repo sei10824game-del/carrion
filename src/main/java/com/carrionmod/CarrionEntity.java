@@ -224,6 +224,7 @@ public class CarrionEntity extends Monster {
         }
         if (tickCount % 6 == 0 && energy < maxEnergy()) energy++;
         if (tickCount % 10 == 0) eatRemains();
+        if (tickCount % 20 == 0) tickHiveCocoon();
         if (getAtk() == NONE && getTarget() == null && random.nextInt(500) == 0) startAttack(ECHO);
         if (cooldown > 0) cooldown--;
         if (recentHurt > 0) recentHurt--;
@@ -241,6 +242,28 @@ public class CarrionEntity extends Monster {
     }
 
     private static boolean isMeat(ItemStack st) { var f = st.getItem().getFoodProperties(); return st.getItem() == Items.ROTTEN_FLESH || f != null && f.isMeat(); }
+
+    public static final net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> HIVE = net.minecraft.tags.BlockTags.create(new net.minecraft.resources.ResourceLocation(CarrionMod.ID, "hive_blocks"));
+    public static final net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> COCOON = net.minecraft.tags.BlockTags.create(new net.minecraft.resources.ResourceLocation(CarrionMod.ID, "cocoon_blocks"));
+
+    /** Hive blocks (tag carrion:hive_blocks) mend and recharge it; cocoon blocks (carrion:cocoon_blocks) are reabsorbed as biomass. Both tags are datapack-editable. */
+    private void tickHiveCocoon() {
+        boolean hive = false;
+        for (var bp : net.minecraft.core.BlockPos.betweenClosed(blockPosition().offset(-3, -1, -3), blockPosition().offset(3, 2, 3))) {
+            var bs = level().getBlockState(bp);
+            if (bs.is(HIVE)) hive = true;
+            else if (bs.is(COCOON) && (getHealth() < getMaxHealth() * .9f || getStage() < 3)) {
+                level().destroyBlock(bp, false, this);
+                addBiomass(5); snd(SoundEvents.SLIME_SQUISH, 1f, .5f);
+                blood(bp.getX() + .5, bp.getY() + .5, bp.getZ() + .5, 8, .3, .03);
+                break;
+            }
+        }
+        if (hive) {
+            heal(getMaxHealth() * .04f); energy = Math.min(maxEnergy(), energy + 10);
+            sl().sendParticles(ParticleTypes.HEART, getX(), getY() + 1.4 * scale(), getZ(), 1, .5, .3, .5, 0);
+        }
+    }
 
     /** Reabsorb meat left behind by dead creatures. */
     private void eatRemains() {

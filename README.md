@@ -29,3 +29,9 @@ Build: `gradle build` (JDK 21 toolchain, Java 17 bytecode). Jar: `build/libs/car
 - Defensive skills (cloak 25, burst 35, carapace 35) cost energy, which recharges over time; the cap grows with class.
 - Biomass comes from kills and from reabsorbing meat/rotten flesh drops. Fire resistance grows with class.
 - Spawns are mostly class 1, rarely a giant.
+
+## Hive & Cocoon (datapack-configurable)
+Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hive_blocks.json` and `cocoon_blocks.json` (or override them in a datapack).
+- Hive blocks within 3 blocks: heal 4% max HP and +10 energy per second.
+- Cocoon blocks within 3 blocks: reabsorbed (+5 biomass) when hurt or not yet fully grown.
+- Defaults: hive = nether wart block, red mushroom block, shroomlight; cocoon = cobweb, slime block, honey block.
