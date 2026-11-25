@@ -47,6 +47,9 @@ public class CarrionMod {
     /** Right-click any block to convert it into a hive / cocoon. */
     public static final RegistryObject<Item> HIVE_SPORE = ITEMS.register("hive_spore", () -> new SporeItem(HIVE));
     public static final RegistryObject<Item> COCOON_SPORE = ITEMS.register("cocoon_spore", () -> new SporeItem(COCOON));
+    public static final DeferredRegister<net.minecraft.sounds.SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, ID);
+    public static final RegistryObject<net.minecraft.sounds.SoundEvent> S_AMBIENT = snd("mob.ambient"), S_HURT = snd("mob.hurt"), S_DEATH = snd("mob.death"), S_STEP = snd("mob.step");
+    static RegistryObject<net.minecraft.sounds.SoundEvent> snd(String n) { return SOUNDS.register(n, () -> net.minecraft.sounds.SoundEvent.createVariableRangeEvent(new net.minecraft.resources.ResourceLocation(ID, n))); }
     public static final RegistryObject<Item> EGG = ITEMS.register("carrion_spawn_egg",
             () -> new ForgeSpawnEggItem(CARRION, 0x4a0910, 0xc4352f, new Item.Properties()));
 
@@ -54,6 +57,7 @@ public class CarrionMod {
         var bus = FMLJavaModLoadingContext.get().getModEventBus();
         ENTITIES.register(bus);
         BLOCKS.register(bus);
+        SOUNDS.register(bus);
         ITEMS.register(bus);
         bus.register(ModEvents.class);
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(ForgeEvents.class);

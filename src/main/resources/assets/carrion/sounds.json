@@ -1,0 +1,6 @@
+{
+ "mob.ambient": {"sounds": ["carrion:mob/ambient1", "carrion:mob/ambient2"], "subtitle": "subtitles.carrion.ambient"},
+ "mob.hurt": {"sounds": ["carrion:mob/hurt"], "subtitle": "subtitles.carrion.hurt"},
+ "mob.death": {"sounds": ["carrion:mob/death"], "subtitle": "subtitles.carrion.death"},
+ "mob.step": {"sounds": ["carrion:mob/step"], "subtitle": "subtitles.carrion.step"}
+}

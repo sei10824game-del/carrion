@@ -137,12 +137,12 @@ public class CarrionEntity extends Monster {
     }
 
     // ---------- sounds ----------
-    @Override protected SoundEvent getAmbientSound() { return SoundEvents.SLIME_SQUISH; }
-    @Override protected SoundEvent getHurtSound(DamageSource s) { return SoundEvents.SLIME_HURT; }
-    @Override protected SoundEvent getDeathSound() { return SoundEvents.RAVAGER_DEATH; }
-    @Override public float getVoicePitch() { return 0.45f - 0.05f * getStage(); }
+    @Override protected SoundEvent getAmbientSound() { return CarrionMod.S_AMBIENT.get(); }
+    @Override protected SoundEvent getHurtSound(DamageSource s) { return CarrionMod.S_HURT.get(); }
+    @Override protected SoundEvent getDeathSound() { return CarrionMod.S_DEATH.get(); }
+    @Override public float getVoicePitch() { return 1f - 0.1f * getStage(); }
     @Override protected void playStepSound(net.minecraft.core.BlockPos p, net.minecraft.world.level.block.state.BlockState s) {
-        playSound(SoundEvents.HONEY_BLOCK_STEP, 0.7f, 0.6f);
+        playSound(CarrionMod.S_STEP.get(), 0.8f, 0.9f - 0.1f * getStage());
     }
 
     private void snd(SoundEvent e, float vol, float pitch) { level().playSound(null, getX(), getY(), getZ(), e, SoundSource.HOSTILE, vol, pitch); }
