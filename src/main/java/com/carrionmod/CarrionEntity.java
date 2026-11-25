@@ -33,6 +33,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import net.minecraftforge.event.ForgeEventFactory;
+
 import java.util.*;
 
 /**
@@ -41,8 +43,8 @@ import java.util.*;
  * and grows by eating what it kills. Hated by (and hating) every other mob.
  */
 public class CarrionEntity extends Monster {
-    public static final int NONE = 0, LASH = 1, GRAB = 2, WEB = 3, SPIT = 4, LUNGE = 5, BURST = 6, CONSUME = 7, ROAR = 8, MIND = 9, HARDEN = 10;
-    public static final int[] LEN = {0, 38, 66, 40, 34, 46, 52, 78, 48, 46, 36};
+    public static final int NONE = 0, LASH = 1, GRAB = 2, WEB = 3, SPIT = 4, LUNGE = 5, BURST = 6, CONSUME = 7, ROAR = 8, MIND = 9, HARDEN = 10, DASH = 11, HARPOON = 12, ECHO = 13;
+    public static final int[] LEN = {0, 38, 66, 40, 34, 46, 52, 78, 48, 46, 36, 40, 44, 44};
     public static final int T_NONE = 0, T_WEB = 1, T_FLESH = 2, T_MIND = 3;
     private static final String THRALL = "CarrionThrallUntil";
     private static final int[] STAGE_BIOMASS = {0, 60, 160, 320};
@@ -57,7 +59,8 @@ public class CarrionEntity extends Monster {
     private int atkStartAge;
     // server state
     private int atkTick, cooldown = 40, webTicks, hardenTicks, cloakTicks, recentHurt, lastAtk;
-    private int biomass;
+    private int biomass, energy = 100;
+    private final List<LivingEntity> hooked = new ArrayList<>();
     private boolean enraged, enraged2, ambush;
     private LivingEntity victim, webTarget, mindTarget;
     private final Set<UUID> hit = new HashSet<>();
@@ -97,6 +100,18 @@ public class CarrionEntity extends Monster {
 
     public static boolean isThrall(Entity e) {
         return e != null && e.getPersistentData().getLong(THRALL) > e.level().getGameTime();
+    }
+
+    // ---------- energy (Electrosis: cap grows with class) ----------
+    public int maxEnergy() { return 100 + 50 * getStage(); }
+    private boolean spend(int n) { if (energy < n) return false; energy -= n; return true; }
+
+    @Override public net.minecraft.world.entity.SpawnGroupData finalizeSpawn(net.minecraft.world.level.ServerLevelAccessor w, net.minecraft.world.DifficultyInstance d,
+            MobSpawnType t, net.minecraft.world.entity.SpawnGroupData g, CompoundTag tag) {
+        int r = random.nextInt(10), st = r < 5 ? 0 : r < 8 ? 1 : r < 9 ? 2 : 3; // mostly small, rarely a giant
+        biomass = STAGE_BIOMASS[st]; entityData.set(STAGE, st);
+        getAttribute(Attributes.MAX_HEALTH).setBaseValue(140 + 60 * st); setHealth(getMaxHealth()); energy = maxEnergy();
+        return super.finalizeSpawn(w, d, t, g, tag);
     }
 
     // ---------- accessors ----------
@@ -148,10 +163,11 @@ public class CarrionEntity extends Monster {
                 snd(SoundEvents.ANVIL_PLACE, .4f, 1.6f);
             }
         }
+        if (src.is(net.minecraft.tags.DamageTypeTags.IS_FIRE)) amt *= Math.max(0, .6f - .3f * getStage()); // Pyrophilia
         if (cloakTicks > 0) uncloak();
         recentHurt = 60;
         boolean r = super.hurt(src, amt);
-        if (r && src.is(net.minecraft.tags.DamageTypeTags.IS_PROJECTILE) && getAtk() == NONE && hardenTicks <= 0 && random.nextInt(3) == 0) startAttack(HARDEN);
+        if (r && src.is(net.minecraft.tags.DamageTypeTags.IS_PROJECTILE) && getAtk() == NONE && hardenTicks <= 0 && getStage() >= 2 && energy >= 35 && random.nextInt(3) == 0) startAttack(HARDEN);
         return r;
     }
 
@@ -183,6 +199,7 @@ public class CarrionEntity extends Monster {
 
     // ---------- cloak / harden ----------
     private void cloak() {
+        if (!spend(25)) return;
         cloakTicks = 400;
         addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 400, 0, false, false));
         snd(SoundEvents.SLIME_SQUISH_SMALL, .8f, .4f);
@@ -205,6 +222,9 @@ public class CarrionEntity extends Monster {
             addEffect(new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 40, 1, false, false));
             if (tickCount % 4 == 0) sl().sendParticles(ParticleTypes.BUBBLE, getX(), getY() + .8, getZ(), 6, 1, .5, 1, .05);
         }
+        if (tickCount % 6 == 0 && energy < maxEnergy()) energy++;
+        if (tickCount % 10 == 0) eatRemains();
+        if (getAtk() == NONE && getTarget() == null && random.nextInt(500) == 0) startAttack(ECHO);
         if (cooldown > 0) cooldown--;
         if (recentHurt > 0) recentHurt--;
         if (hardenTicks > 0 && --hardenTicks == 0) { entityData.set(HARDENED, false); removeEffect(MobEffects.MOVEMENT_SLOWDOWN); }
@@ -218,6 +238,20 @@ public class CarrionEntity extends Monster {
         if (getAtk() == NONE && cloakTicks <= 0 && t != null && distanceToSqr(t) > 196 && random.nextInt(80) == 0) cloak();
         if (getAtk() == NONE && t == null && cloakTicks <= 0 && random.nextInt(900) == 0) cloak();
         if (tickCount % 20 == 0 && getHealth() < getMaxHealth() && getAtk() == NONE) heal(0.5f + getStage() * .3f); // slow regeneration
+    }
+
+    private static boolean isMeat(ItemStack st) { var f = st.getItem().getFoodProperties(); return st.getItem() == Items.ROTTEN_FLESH || f != null && f.isMeat(); }
+
+    /** Reabsorb meat left behind by dead creatures. */
+    private void eatRemains() {
+        for (var it : level().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, getBoundingBox().inflate(2.2 * scale(), 1, 2.2 * scale()))) {
+            var st = it.getItem();
+            if (isMeat(st)) {
+                addBiomass(st.getCount() * 2); it.discard();
+                snd(SoundEvents.GENERIC_EAT, .8f, .5f);
+                blood(it.getX(), it.getY() + .2, it.getZ(), 6, .2, .03);
+            }
+        }
     }
 
     private void tickWeb() {
@@ -290,19 +324,23 @@ public class CarrionEntity extends Monster {
         float hp = getHealth() / getMaxHealth();
         if (!enraged && hp < .5f) { enraged = true; startAttack(ROAR); return; }
         if (!enraged2 && hp < .2f) { enraged2 = true; startAttack(ROAR); return; }
-        int[] w = new int[11];
+        int[] w = new int[14]; int st = getStage();
         int near = countEnemies(4.5 * s);
         if (d < 5.2 * s) {
             w[LASH] = 6; w[GRAB] = 3;
-            if (near >= 2 || hp < .5f) w[BURST] = 5;
+            if ((near >= 2 || hp < .5f) && st >= 1 && energy >= 35) w[BURST] = 5; // Acanthosis
             if (canConsume(t) && d < 4 * s) w[CONSUME] = 12;
         } else if (d < 9 * s) {
             w[GRAB] = 3; w[LUNGE] = 4; w[WEB] = 3; w[SPIT] = 3;
+            if (st >= 1) w[DASH] = 5;
+            if (st >= 2) w[HARPOON] = 5;
         } else if (d < 22) {
+            if (st >= 1 && d < 14) w[DASH] = 4;
+            if (st >= 2 && d < 15) w[HARPOON] = 4;
             w[WEB] = 4; w[SPIT] = 3; w[LUNGE] = d < 15 ? 3 : 0;
         }
-        if (hardenTicks <= 0 && recentHurt > 0 && hp < .8f) w[HARDEN] = 3;
-        if (findThrallCandidate() != null && random.nextInt(3) == 0) w[MIND] = 3;
+        if (hardenTicks <= 0 && recentHurt > 0 && hp < .8f && st >= 2 && energy >= 35) w[HARDEN] = 3; // Keratosis
+        if (st >= 1 && findThrallCandidate() != null && random.nextInt(3) == 0) w[MIND] = 3;
         w[lastAtk] = 0;
         if (webTicks > 0) { w[WEB] = 0; w[SPIT] = 0; w[LASH] += 2; w[GRAB] += 2; }
         int sum = 0; for (int x : w) sum += x;
@@ -334,6 +372,9 @@ public class CarrionEntity extends Monster {
             case ROAR -> roar();
             case MIND -> mind();
             case HARDEN -> harden();
+            case DASH -> dash();
+            case HARPOON -> harpoon();
+            case ECHO -> echo();
         }
         atkTick++;
         if (atkTick >= LEN[a]) endAttack();
@@ -509,6 +550,7 @@ public class CarrionEntity extends Monster {
             if (atkTick % 4 == 0) snd(SoundEvents.SLIME_SQUISH, .8f, .3f + atkTick * .02f);
         }
         if (atkTick == 20) {
+            spend(35);
             snd(SoundEvents.GENERIC_EXPLODE, 1.3f, .7f); snd(SoundEvents.EVOKER_FANGS_ATTACK, 1.5f, .6f);
             sl().sendParticles(ParticleTypes.EXPLOSION_EMITTER, getX(), getY() + .8, getZ(), 1, 0, 0, 0, 0);
             for (int i = 0; i < 14; i++) {
@@ -575,9 +617,100 @@ public class CarrionEntity extends Monster {
         }
     }
 
+    /** Xiphorrhea: coil, then a slashing dash that shreds wooden barriers. */
+    private void dash() {
+        double s = scale();
+        if (atkTick < 12) { getNavigation().stop(); setDeltaMovement(getDeltaMovement().multiply(.2, 1, .2)); if (atkTick == 3) snd(SoundEvents.SLIME_SQUISH, 1f, .3f); }
+        if (atkTick == 12) {
+            LivingEntity t = getTarget();
+            Vec3 d = t != null ? t.position().subtract(position()).multiply(1, 0, 1) : front();
+            d = d.lengthSqr() < 1e-4 ? front() : d.normalize();
+            setDeltaMovement(d.x * 2.1, .12, d.z * 2.1); hasImpulse = true; yBodyRot = (float) (Mth.atan2(d.z, d.x) * 57.2958 - 90);
+            snd(SoundEvents.PLAYER_ATTACK_SWEEP, 1.5f, .4f); snd(SoundEvents.RAVAGER_ATTACK, 1f, .6f);
+        }
+        if (atkTick >= 12 && atkTick < 26) {
+            sl().sendParticles(new DustParticleOptions(new Vector3f(.55f, .03f, .06f), 1.4f), getX(), getY() + .6 * s, getZ(), 5, .8 * s, .3, .8 * s, .03);
+            sl().sendParticles(ParticleTypes.SWEEP_ATTACK, getX() + front().x * 2 * s, getY() + .8 * s, getZ() + front().z * 2 * s, 1, 0, 0, 0, 0);
+            for (LivingEntity e : level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(1.1 * s, .5, 1.1 * s), this::canHit)) {
+                if (!hit.add(e.getUUID())) continue;
+                e.hurt(damageSources().mobAttack(this), (float) dmg(1.1));
+                Vec3 side = new Vec3(-front().z, 0, front().x);
+                knock(e, front().scale(.7).add(side.scale(.8 * (random.nextBoolean() ? 1 : -1))).normalize(), 1.5, .35);
+                snd(SoundEvents.PLAYER_ATTACK_STRONG, 1.2f, .5f);
+            }
+            if (ForgeEventFactory.getMobGriefingEvent(level(), this))
+                for (var bp : net.minecraft.core.BlockPos.betweenClosed(blockPosition().offset(-2, 0, -2), blockPosition().offset(2, 2, 2))) {
+                    var bs = level().getBlockState(bp);
+                    if ((bs.is(net.minecraft.tags.BlockTags.PLANKS) || bs.is(net.minecraft.tags.BlockTags.WOODEN_DOORS) || bs.is(net.minecraft.tags.BlockTags.WOODEN_FENCES)
+                            || bs.is(net.minecraft.tags.BlockTags.LEAVES) || bs.is(net.minecraft.tags.BlockTags.WOODEN_TRAPDOORS)) && random.nextInt(3) == 0)
+                        level().destroyBlock(bp, true, this);
+                }
+            if (atkTick > 18 && onGround()) atkTick = Math.max(atkTick, 26);
+        }
+    }
+
+    /** Harpagorrhea: fan of harpoon tendrils out front, then hauls everything it hooked back in. */
+    private void harpoon() {
+        double s = scale(), reach = 12 * s;
+        getNavigation().stop();
+        if (atkTick == 0) hooked.clear();
+        if (atkTick == 4) snd(SoundEvents.SLIME_SQUISH, 1.2f, .3f);
+        if (atkTick == 10) { snd(SoundEvents.TRIDENT_THROW, 1.5f, .4f); snd(SoundEvents.SPIDER_HURT, 1f, .4f); }
+        if (atkTick >= 10 && atkTick < 22) {
+            double r = reach * ease((atkTick - 10) / 6f);
+            Vec3 f = front();
+            for (int k = -2; k <= 2; k++) {
+                double ang = k * .22; Vec3 dir = new Vec3(f.x * Math.cos(ang) - f.z * Math.sin(ang), 0, f.x * Math.sin(ang) + f.z * Math.cos(ang));
+                for (double q = 1.5 * s; q < r; q += 1.4 * s)
+                    blood(getX() + dir.x * q, getY() + .7 * s, getZ() + dir.z * q, 1, .04, .01);
+                sl().sendParticles(ParticleTypes.CRIT, getX() + dir.x * r, getY() + .7 * s, getZ() + dir.z * r, 2, .1, .1, .1, .02);
+            }
+            for (LivingEntity e : level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(reach, 1.5 * s, reach), this::canHit)) {
+                Vec3 to = e.position().subtract(position()).multiply(1, 0, 1);
+                double dist = to.length();
+                if (dist > r || dist < 1e-3 || f.dot(to.normalize()) < .8 || hooked.contains(e)) continue;
+                hooked.add(e);
+                e.hurt(damageSources().mobAttack(this), (float) dmg(.75));
+                snd(SoundEvents.TRIDENT_HIT, 1f, .6f);
+            }
+        }
+        if (atkTick >= 24 && atkTick < 38) { // retract: reel the catch in
+            if (atkTick == 24) snd(SoundEvents.FISHING_BOBBER_RETRIEVE, 1.5f, .4f);
+            for (LivingEntity e : hooked) {
+                if (!e.isAlive()) continue;
+                Vec3 d = position().add(front().scale(1.6 * s)).subtract(e.position());
+                if (d.length() > 1.8 * s) { Vec3 v = d.normalize().scale(1.1); e.setDeltaMovement(v.x, Math.max(.1, v.y), v.z); e.hurtMarked = true; }
+            }
+        }
+        if (atkTick == 38) for (LivingEntity e : hooked) if (e.isAlive() && distanceToSqr(e) < Mth.square(3 * s)) {
+            e.hurt(damageSources().mobAttack(this), (float) dmg(.9)); knock(e, front(), .8, .3); snd(SoundEvents.SLIME_ATTACK, 1f, .5f);
+        }
+    }
+
+    /** Echolocation: a pulse that outlines living prey and edible remains through walls. */
+    private void echo() {
+        getNavigation().stop();
+        if (atkTick == 8) snd(SoundEvents.WARDEN_SONIC_CHARGE, 1.2f, .8f);
+        if (atkTick >= 14 && atkTick < 34 && atkTick % 2 == 0) {
+            double r = (atkTick - 14) * 1.6;
+            for (int i = 0; i < 24; i++) {
+                double a = i / 24.0 * Math.PI * 2;
+                sl().sendParticles(ParticleTypes.SCULK_CHARGE_POP, getX() + Math.cos(a) * r, getY() + .3, getZ() + Math.sin(a) * r, 1, 0, 0, 0, 0);
+            }
+        }
+        if (atkTick == 14) {
+            snd(SoundEvents.WARDEN_SONIC_BOOM, .7f, 1.6f);
+            for (LivingEntity e : level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(32), x -> x != this))
+                e.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0, false, false));
+            for (var it : level().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, getBoundingBox().inflate(32)))
+                if (isMeat(it.getItem())) it.setGlowingTag(true);
+        }
+    }
+
     private void harden() {
         getNavigation().stop();
         if (atkTick == 14) {
+            spend(35);
             entityData.set(HARDENED, true); hardenTicks = 200;
             addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 0, false, false));
             snd(SoundEvents.NETHERITE_BLOCK_PLACE, 1.5f, .5f); snd(SoundEvents.TURTLE_SHAMBLE, 1f, .5f);
@@ -608,12 +741,12 @@ public class CarrionEntity extends Monster {
     // ---------- persistence ----------
     @Override public void addAdditionalSaveData(CompoundTag n) {
         super.addAdditionalSaveData(n);
-        n.putInt("Biomass", biomass); n.putBoolean("Enraged", enraged); n.putBoolean("Enraged2", enraged2);
+        n.putInt("Biomass", biomass); n.putInt("Energy", energy); n.putBoolean("Enraged", enraged); n.putBoolean("Enraged2", enraged2);
     }
 
     @Override public void readAdditionalSaveData(CompoundTag n) {
         super.readAdditionalSaveData(n);
-        biomass = n.getInt("Biomass"); enraged = n.getBoolean("Enraged"); enraged2 = n.getBoolean("Enraged2");
+        biomass = n.getInt("Biomass"); energy = n.contains("Energy") ? n.getInt("Energy") : 100; enraged = n.getBoolean("Enraged"); enraged2 = n.getBoolean("Enraged2");
         int st = 0;
         for (int i = 0; i < STAGE_BIOMASS.length; i++) if (biomass >= STAGE_BIOMASS[i]) st = i;
         entityData.set(STAGE, st);

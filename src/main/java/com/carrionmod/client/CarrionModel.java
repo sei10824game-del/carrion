@@ -246,6 +246,41 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
                 for (int i = 0; i < 4; i++) { yaw[i] = lerp(rel, yaw[i], AP[i][3]); base[i] = lerp(rel, base[i], -.7f); curl[i] = lerp(rel, curl[i], -.42f); str[i] = lerp(rel, str[i], 1); }
                 bodySY = 1 + .05f * Mth.sin(age * .5f) * up; jaw = .25f * up * (1 - rel);
             }
+            case CarrionEntity.DASH -> {
+                float coil = ph(p, 0, 12), go = ph(p, 12, 15), swing = ph(p, 14, 24), rec = ph(p, 26, 40);
+                crouch = 4f * coil * (1 - go); bodySY = 1 - .3f * coil * (1 - go); bodyZS = 1 + .5f * go * (1 - rec);
+                tilt = (.35f * coil * (1 - go) - .4f * go) * (1 - rec); jaw = (.4f * coil + .6f * go) * (1 - rec);
+                for (int i = 0; i < 4; i++) {
+                    float side = i % 2 == 0 ? 1 : -1;
+                    float y0 = lerp(coil, AP[i][3], side * 1.4f), b0 = lerp(coil, -.7f, 1.9f);
+                    float y1 = lerp(swing, side * 1.9f, -side * .7f); // slashing sweep across the body
+                    yaw[i] = lerp(go, y0, y1); base[i] = lerp(go, b0, -1.45f); curl[i] = lerp(go, -.42f, 0); str[i] = 1 + 1.3f * go * (1 - rec);
+                    yaw[i] = lerp(rec, yaw[i], AP[i][3]); base[i] = lerp(rec, base[i], -.7f); curl[i] = lerp(rec, curl[i], -.42f);
+                }
+                spineE = .5f;
+            }
+            case CarrionEntity.HARPOON -> {
+                float sp = ph(p, 0, 10), fire = ph(p, 10, 16), ret = ph(p, 24, 38);
+                crouch = 2f * sp * (1 - ret); tilt = (.15f * sp - .12f * fire) * (1 - ret); offZ = -2f * fire * (1 - ret);
+                jaw = .6f * sp * (1 - ret); shake = .15f * fire * (1 - ret);
+                for (int i = 0; i < 4; i++) {
+                    float k = i - 1.5f;
+                    yaw[i] = lerp(sp, AP[i][3], k * .22f); base[i] = lerp(sp, -.7f, -1.5f); curl[i] = lerp(sp, -.42f, 0);
+                    str[i] = 1 + .25f * sp + 2.6f * fire * (1 - ph(p, 22, 38) * .85f);
+                    yaw[i] = lerp(ret, yaw[i], AP[i][3] * 0 + yaw[i]); // stay fanned while reeling
+                    if (p > 38) { float r2 = ph(p, 38, 44); yaw[i] = lerp(r2, yaw[i], AP[i][3]); base[i] = lerp(r2, base[i], -.7f); curl[i] = lerp(r2, curl[i], -.42f); str[i] = lerp(r2, str[i], 1); }
+                }
+                spineE = .35f;
+            }
+            case CarrionEntity.ECHO -> {
+                float up = ph(p, 0, 12), rel = ph(p, 32, 44), beat = Mth.sin(p * .9f) * (p > 10 && p < 34 ? 1 : 0);
+                humpS = 1 + .3f * up * (1 - rel) + .15f * beat; jaw = .5f * up * (1 - rel); tilt = -.3f * up * (1 - rel);
+                for (int i = 0; i < 4; i++) {
+                    float side = i % 2 == 0 ? 1 : -1;
+                    yaw[i] = lerp(up, AP[i][3], side * 1.1f); base[i] = lerp(up, -.7f, -2.2f + .3f * (i / 2)); curl[i] = lerp(up, -.42f, -.1f);
+                    str[i] = 1 + .3f * up; yaw[i] = lerp(rel, yaw[i], AP[i][3]); base[i] = lerp(rel, base[i], -.7f); curl[i] = lerp(rel, curl[i], -.42f); str[i] = lerp(rel, str[i], 1);
+                }
+            }
             case CarrionEntity.HARDEN -> {
                 float fold = ph(p, 0, 14), rel = ph(p, 26, 36);
                 for (int i = 0; i < 4; i++) {

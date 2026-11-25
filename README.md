@@ -15,8 +15,17 @@ Adds **Carrion**, an amorphous flesh monster (original design, procedural tendri
 | Mind Control | tendril into a nearby monster, which then fights for Carrion |
 | Harden | spiked carapace: 65% less damage, reflects melee hits |
 | Hydrophilia | no drowning, fast swimming in water |
+| Slash Dash (class 2+) | coil, then a shredding dash that breaks wooden blocks |
+| Harpoon Vortex (class 3) | fan of tendril harpoons, then reels the catch back in |
+| Echolocation | idle pulse that outlines prey and edible remains |
 | Cloak | invisible when far from prey; striking from cloak does +50% damage |
 
 Growth: 4 stages (bigger, tougher, stronger) from eating/killing. Spawn egg in the creative tab; rare natural overworld spawns.
 
 Build: `gradle build` (JDK 21 toolchain, Java 17 bytecode). Jar: `build/libs/carrion-1.0.0.jar`.
+
+## Biomass classes & energy
+- Class 1 (0-59 biomass): web, cloak, lash, grab, spit, lunge. Class 2 (60+): + spine burst, slash dash, mind control. Class 3 (160+): + harpoon vortex, carapace. Stage 4 (320+) is the largest.
+- Defensive skills (cloak 25, burst 35, carapace 35) cost energy, which recharges over time; the cap grows with class.
+- Biomass comes from kills and from reabsorbing meat/rotten flesh drops. Fire resistance grows with class.
+- Spawns are mostly class 1, rarely a giant.
