@@ -35,3 +35,4 @@ Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hiv
 - Hive blocks within 3 blocks: heal 4% max HP and +10 energy per second.
 - Cocoon blocks within 3 blocks: reabsorbed (+5 biomass) when hurt or not yet fully grown.
 - Defaults: hive = nether wart block, red mushroom block, shroomlight; cocoon = cobweb, slime block, honey block.
+- Items: **Hive Spore** / **Cocoon Spore** (Ingredients tab) convert any right-clicked block (not unbreakable or block entities) into a Hive / Cocoon block, which are in the tags by default.
