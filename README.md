@@ -33,6 +33,6 @@ Build: `gradle build` (JDK 21 toolchain, Java 17 bytecode). Jar: `build/libs/car
 ## Hive & Cocoon (datapack-configurable)
 Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hive_blocks.json` and `cocoon_blocks.json` (or override them in a datapack).
 - Hive blocks within 3 blocks: heal 4% max HP and +10 energy per second.
-- Cocoon blocks within 3 blocks: reabsorbed (+5 biomass) when hurt or not yet fully grown.
+- Cocoon blocks within 3 blocks: reabsorbed (+5 biomass) when hurt. A healthy Carrion in water deposits surplus biomass as cocoons.
 - Defaults: hive = nether wart block, red mushroom block, shroomlight; cocoon = cobweb, slime block, honey block.
 - Items: **Hive Spore** / **Cocoon Spore** (Ingredients tab) convert any right-clicked block (not unbreakable or block entities) into a Hive / Cocoon block, which are in the tags by default.

@@ -252,12 +252,18 @@ public class CarrionEntity extends Monster {
         for (var bp : net.minecraft.core.BlockPos.betweenClosed(blockPosition().offset(-3, -1, -3), blockPosition().offset(3, 2, 3))) {
             var bs = level().getBlockState(bp);
             if (bs.is(HIVE)) hive = true;
-            else if (bs.is(COCOON) && (getHealth() < getMaxHealth() * .9f || getStage() < 3)) {
+            else if (bs.is(COCOON) && getHealth() < getMaxHealth() * .9f) {
                 level().destroyBlock(bp, false, this);
                 addBiomass(5); snd(SoundEvents.SLIME_SQUISH, 1f, .5f);
                 blood(bp.getX() + .5, bp.getY() + .5, bp.getZ() + .5, 8, .3, .03);
                 break;
             }
+        }
+        // deposit surplus biomass as a cocoon while healthy in water
+        if (isInWater() && getHealth() >= getMaxHealth() * .9f && biomass >= STAGE_BIOMASS[getStage()] + 10 && random.nextInt(4) == 0
+                && level().getBlockState(blockPosition()).getFluidState().isSource() | level().getBlockState(blockPosition()).is(net.minecraft.world.level.block.Blocks.WATER)) {
+            level().setBlockAndUpdate(blockPosition(), CarrionMod.COCOON.get().defaultBlockState());
+            biomass -= 5; snd(SoundEvents.SLIME_SQUISH_SMALL, 1f, .5f);
         }
         if (hive) {
             heal(getMaxHealth() * .04f); energy = Math.min(maxEnergy(), energy + 10);
