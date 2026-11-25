@@ -15,7 +15,7 @@ import net.minecraft.util.Mth;
 /** Procedurally animated flesh mass: jawed core, 4 reaching tendrils, 6 crawling pseudopods, tail, spines and plates. */
 public class CarrionModel extends EntityModel<CarrionEntity> {
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(new ResourceLocation(CarrionMod.ID, "carrion"), "main");
-    static final float[] AL = {9, 8, 7, 6, 5}, AT = {5.6f, 4.8f, 4f, 3.2f, 2.4f};
+    static final float[] AL = {9, 8, 7, 6, 5}, AT = {4.4f, 3.8f, 3.2f, 2.6f, 2f};
     static final float[] LL = {5, 5, 4}, LT = {6, 4.6f, 3.4f};
     static final float[] TL = {8, 7, 6, 5, 4, 3.5f}, TT = {6, 5, 4.2f, 3.4f, 2.6f, 2};
     // arms: x, y, z, rest yaw
@@ -311,7 +311,7 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
             ModelPart[] a = arm[i];
             a[0].setPos(AP[i][0] * bodySXZ, AP[i][1] + offY + crouch * .5f, AP[i][2] + offZ + (bodyZS - 1) * -6);
             a[0].yRot = yaw[i] + sh; a[0].xRot = base[i] + tilt * .3f; a[0].zRot = 0;
-            a[0].yScale = str[i]; a[0].xScale = a[0].zScale = 1;
+            a[0].yScale = str[i]; a[0].xScale = a[0].zScale = 1 / Mth.sqrt(Math.max(1, str[i])); // stretched tentacles thin out
             for (int j = 0; j < 5; j++) {
                 float w = Mth.sin(age * .13f * (1 + .1f * i) - j * .8f + i * 1.7f) * wav[i] * wob * (.35f + .2f * j);
                 if (j > 0) a[j].xRot = curl[i] * (j == 1 ? 1.2f : 1) + w * .5f;
