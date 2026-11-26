@@ -700,6 +700,7 @@ public class CarrionEntity extends Monster {
             for (LivingEntity e : level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(1.1 * s, .5, 1.1 * s), this::canHit)) {
                 if (!hit.add(e.getUUID())) continue;
                 e.hurt(damageSources().mobAttack(this), (float) dmg(1.1));
+                if (e instanceof SentryDrone) e.hurt(damageSources().mobAttack(this), 1000); // slashed apart
                 Vec3 side = new Vec3(-front().z, 0, front().x);
                 knock(e, front().scale(.7).add(side.scale(.8 * (random.nextBoolean() ? 1 : -1))).normalize(), 1.5, .35);
                 snd(SoundEvents.PLAYER_ATTACK_STRONG, 1.2f, .5f);
@@ -737,6 +738,7 @@ public class CarrionEntity extends Monster {
                 if (dist > r || dist < 1e-3 || f.dot(to.normalize()) < .8 || hooked.contains(e)) continue;
                 hooked.add(e);
                 e.hurt(damageSources().mobAttack(this), (float) dmg(.75));
+                if (e instanceof SentryDrone) e.hurt(damageSources().mobAttack(this), 1000);
                 snd(SoundEvents.TRIDENT_HIT, 1f, .6f);
             }
         }

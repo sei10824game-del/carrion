@@ -42,3 +42,4 @@ Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hiv
 - **Parasitism** (class 2+): burrows into an unarmored villager/illager/witch, swells it from within, bursts out for biomass and healing.
 - **Power nodes** (tag `carrion:power_nodes`: lightning rod, redstone/copper block, lodestone by default) recharge energy fast.
 - **Sentry Turret** (spawn egg): stationary armoured gun that targets Carrion, takes half damage from projectiles.
+- **Sentry Drone** (spawn egg): hovers above Carrion firing 3-round bursts. A web hit grounds it (fall damage, then it recovers); slash dash and harpoon destroy it instantly.

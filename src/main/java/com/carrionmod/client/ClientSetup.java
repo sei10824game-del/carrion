@@ -13,6 +13,7 @@ public class ClientSetup {
         e.registerLayerDefinition(CarrionModel.LAYER, CarrionModel::createBodyLayer);
         e.registerLayerDefinition(ShotRenderer.LAYER, ShotRenderer::layer);
         e.registerLayerDefinition(TurretRenderer.LAYER, TurretRenderer::layer);
+        e.registerLayerDefinition(DroneRenderer.LAYER, DroneRenderer::layer);
     }
 
     @SubscribeEvent
@@ -20,5 +21,6 @@ public class ClientSetup {
         e.registerEntityRenderer(CarrionMod.CARRION.get(), CarrionRenderer::new);
         e.registerEntityRenderer(CarrionMod.SHOT.get(), ShotRenderer::new);
         e.registerEntityRenderer(CarrionMod.TURRET.get(), TurretRenderer::new);
+        e.registerEntityRenderer(CarrionMod.DRONE.get(), DroneRenderer::new);
     }
 }

@@ -63,7 +63,7 @@ public class CarrionShot extends ThrowableProjectile {
         if (!(hit instanceof LivingEntity v)) return;
         double d = c.dmg(1);
         switch (kind()) {
-            case WEB -> { v.hurt(damageSources().mobProjectile(this, c), (float) (d * .25)); c.snare(v); }
+            case WEB -> { v.hurt(damageSources().mobProjectile(this, c), (float) (d * .25)); c.snare(v); if (v instanceof SentryDrone dr) dr.stun(); }
             case SPIT -> {
                 v.hurt(damageSources().mobProjectile(this, c), (float) (d * .55));
                 v.addEffect(new MobEffectInstance(MobEffects.POISON, 120, 1));
