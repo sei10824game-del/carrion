@@ -52,6 +52,8 @@ public class CarrionMod {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, ID);
     public static final RegistryObject<Block> HIVE = BLOCKS.register("hive", () -> new Block(BlockBehaviour.Properties.of().strength(2f).sound(SoundType.HONEY_BLOCK).lightLevel(st -> 4)));
     public static final RegistryObject<Block> COCOON = BLOCKS.register("cocoon", () -> new Block(BlockBehaviour.Properties.of().strength(1f).sound(SoundType.SLIME_BLOCK)));
+    public static final RegistryObject<Block> TURBINE = BLOCKS.register("turbine", () -> new TurbineBlock(BlockBehaviour.Properties.of().strength(3f).sound(SoundType.METAL).noOcclusion()));
+    public static final RegistryObject<Item> TURBINE_ITEM = ITEMS.register("turbine", () -> new BlockItem(TURBINE.get(), new Item.Properties()));
     public static final RegistryObject<Item> HIVE_ITEM = ITEMS.register("hive", () -> new BlockItem(HIVE.get(), new Item.Properties()));
     public static final RegistryObject<Item> COCOON_ITEM = ITEMS.register("cocoon", () -> new BlockItem(COCOON.get(), new Item.Properties()));
     /** Right-click any block to convert it into a hive / cocoon. */
@@ -109,7 +111,7 @@ public class CarrionMod {
             if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(TURRET_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(DRONE_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(FLAME_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(MECH_EGG);
             if (e.getTabKey() == CreativeModeTabs.COMBAT) e.accept(MINE_ITEM);
             if (e.getTabKey() == CreativeModeTabs.INGREDIENTS) { e.accept(HIVE_SPORE); e.accept(COCOON_SPORE); }
-            if (e.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) { e.accept(HIVE_ITEM); e.accept(COCOON_ITEM); }
+            if (e.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) { e.accept(HIVE_ITEM); e.accept(TURBINE_ITEM); e.accept(COCOON_ITEM); }
         }
     }
 
