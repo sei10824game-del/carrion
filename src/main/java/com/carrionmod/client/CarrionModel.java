@@ -236,7 +236,7 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
                     yaw[i] = lerp(rel, yaw[i], AP[i][3]); base[i] = lerp(rel, base[i], -.7f); curl[i] = lerp(rel, curl[i], -.42f); str[i] = lerp(rel, str[i], 1);
                 }
             }
-            case CarrionEntity.MIND -> {
+            case CarrionEntity.MIND, CarrionEntity.PARASITE -> {
                 float up = ph(p, 0, 12), rel = ph(p, 34, 46);
                 float spin = age * .12f;
                 for (int i = 1; i < 4; i++) { // crown of tendrils above, slowly circling

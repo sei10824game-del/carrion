@@ -43,8 +43,8 @@ import java.util.*;
  * and grows by eating what it kills. Hated by (and hating) every other mob.
  */
 public class CarrionEntity extends Monster {
-    public static final int NONE = 0, LASH = 1, GRAB = 2, WEB = 3, SPIT = 4, LUNGE = 5, BURST = 6, CONSUME = 7, ROAR = 8, MIND = 9, HARDEN = 10, DASH = 11, HARPOON = 12, ECHO = 13;
-    public static final int[] LEN = {0, 38, 66, 40, 34, 46, 52, 78, 48, 46, 36, 40, 44, 44};
+    public static final int NONE = 0, LASH = 1, GRAB = 2, WEB = 3, SPIT = 4, LUNGE = 5, BURST = 6, CONSUME = 7, ROAR = 8, MIND = 9, HARDEN = 10, DASH = 11, HARPOON = 12, ECHO = 13, PARASITE = 14;
+    public static final int[] LEN = {0, 38, 66, 40, 34, 46, 52, 78, 48, 46, 36, 40, 44, 44, 50};
     public static final int T_NONE = 0, T_WEB = 1, T_FLESH = 2, T_MIND = 3;
     private static final String THRALL = "CarrionThrallUntil";
     private static final int[] STAGE_BIOMASS = {0, 60, 160, 320};
@@ -276,6 +276,7 @@ public class CarrionEntity extends Monster {
     private static boolean isMeat(ItemStack st) { var f = st.getItem().getFoodProperties(); return st.getItem() == Items.ROTTEN_FLESH || f != null && f.isMeat(); }
 
     public static final net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> HIVE = net.minecraft.tags.BlockTags.create(new net.minecraft.resources.ResourceLocation(CarrionMod.ID, "hive_blocks"));
+    public static final net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> NODE = net.minecraft.tags.BlockTags.create(new net.minecraft.resources.ResourceLocation(CarrionMod.ID, "power_nodes"));
     public static final net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> COCOON = net.minecraft.tags.BlockTags.create(new net.minecraft.resources.ResourceLocation(CarrionMod.ID, "cocoon_blocks"));
 
     /** Hive blocks (tag carrion:hive_blocks) mend and recharge it; cocoon blocks (carrion:cocoon_blocks) are reabsorbed as biomass. Both tags are datapack-editable. */
@@ -283,6 +284,7 @@ public class CarrionEntity extends Monster {
         boolean hive = false;
         for (var bp : net.minecraft.core.BlockPos.betweenClosed(blockPosition().offset(-3, -1, -3), blockPosition().offset(3, 2, 3))) {
             var bs = level().getBlockState(bp);
+            if (bs.is(NODE)) energy = Math.min(maxEnergy(), energy + 25); // Electrosis: recharge at power nodes
             if (bs.is(HIVE)) hive = true;
             else if (bs.is(COCOON) && getHealth() < getMaxHealth() * .9f) {
                 level().destroyBlock(bp, false, this);
@@ -386,7 +388,7 @@ public class CarrionEntity extends Monster {
         float hp = getHealth() / getMaxHealth();
         if (!enraged && hp < .5f) { enraged = true; startAttack(ROAR); return; }
         if (!enraged2 && hp < .2f) { enraged2 = true; startAttack(ROAR); return; }
-        int[] w = new int[14]; int st = getStage();
+        int[] w = new int[15]; int st = getStage();
         int near = countEnemies(4.5 * s);
         if (d < 5.2 * s) {
             w[LASH] = 6; w[GRAB] = 3;
@@ -402,6 +404,7 @@ public class CarrionEntity extends Monster {
             w[WEB] = 4; w[SPIT] = 3; w[LUNGE] = d < 15 ? 3 : 0;
         }
         if (hardenTicks <= 0 && recentHurt > 0 && hp < .8f && st >= 2 && energy >= 35) w[HARDEN] = 3; // Keratosis
+        if (st >= 1 && hostCandidate() != null && d < 14 && random.nextInt(2) == 0) w[PARASITE] = 4;
         if (st >= 1 && findThrallCandidate() != null && random.nextInt(3) == 0) w[MIND] = 3;
         w[lastAtk] = 0;
         if (webTicks > 0) { w[WEB] = 0; w[SPIT] = 0; w[LASH] += 2; w[GRAB] += 2; }
@@ -437,6 +440,7 @@ public class CarrionEntity extends Monster {
             case DASH -> dash();
             case HARPOON -> harpoon();
             case ECHO -> echo();
+            case PARASITE -> parasite();
         }
         atkTick++;
         if (atkTick >= LEN[a]) endAttack();
@@ -766,6 +770,39 @@ public class CarrionEntity extends Monster {
                 e.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0, false, false));
             for (var it : level().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, getBoundingBox().inflate(32)))
                 if (isMeat(it.getItem())) it.setGlowingTag(true);
+        }
+    }
+
+    private LivingEntity hostCandidate() {
+        List<LivingEntity> l = level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(12),
+                m -> (m instanceof net.minecraft.world.entity.npc.AbstractVillager || m instanceof net.minecraft.world.entity.raid.Raider || m instanceof net.minecraft.world.entity.monster.Witch)
+                        && m.isAlive() && m.getArmorValue() == 0 && !isThrall(m));
+        return l.isEmpty() ? null : l.get(random.nextInt(l.size()));
+    }
+
+    /** Parasitism: a tendril burrows into an unarmored human, swells it from within, and bursts out. */
+    private void parasite() {
+        getNavigation().stop();
+        if (atkTick == 0) {
+            victim = hostCandidate();
+            if (victim == null) { endAttack(); return; }
+            entityData.set(TETHER, victim.getId()); entityData.set(TKIND, T_MIND);
+            snd(SoundEvents.SLIME_SQUISH, 1f, .3f);
+        }
+        if (victim == null) return;
+        if (atkTick == 12) { snd(SoundEvents.ELDER_GUARDIAN_CURSE, .8f, .4f); victim.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 4)); if (victim instanceof Mob m) m.setNoAi(true); }
+        if (atkTick >= 12 && atkTick < 40 && atkTick % 4 == 0) {
+            victim.hurt(damageSources().mobAttack(this), 1f);
+            blood(victim.getX(), victim.getY() + victim.getBbHeight() * .5, victim.getZ(), 4, .25, .02);
+            snd(SoundEvents.SLIME_SQUISH_SMALL, .8f, .4f + atkTick * .01f);
+        }
+        if (atkTick == 40) {
+            if (victim instanceof Mob m) m.setNoAi(false);
+            float mh = victim.getMaxHealth();
+            blood(victim.getX(), victim.getY() + victim.getBbHeight() * .5, victim.getZ(), 40, .5, .2);
+            snd(SoundEvents.GENERIC_EXPLODE, 1f, .6f);
+            victim.hurt(damageSources().mobAttack(this), mh * 4);
+            if (!victim.isAlive()) { addBiomass((int) mh); heal(mh * .5f); }
         }
     }
 
