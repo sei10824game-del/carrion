@@ -51,3 +51,4 @@ Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hiv
 - **Acid Immunity** (class 2+): immune to poison, halves magic damage. Thermovision is folded into Echolocation (outlines all living things and meat).
 - **Bite**: a tendril hauls the victim into the maw for a guaranteed bite (ignores hit-immunity frames). **Wall Slam**: hoists the victim and smashes it twice into the nearest wall (or the floor), breaking soft blocks.
 - **Movement**: no stepping; tentacles reach, stick to the surface and haul the body forward. It climbs walls and ceilings-edges like a spider.
+- Late forms look different: +2 tentacles at stage 4 and again at stage 6 (10 total), longer spines, armour plates from stage 6, and a darker, blackened hide as it evolves.
