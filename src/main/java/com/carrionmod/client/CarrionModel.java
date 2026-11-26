@@ -19,20 +19,20 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
     static final float[] LL = {5, 5, 4}, LT = {6, 4.6f, 3.4f};
     static final float[] TL = {8, 7, 6, 5, 4, 3.5f}, TT = {6, 5, 4.2f, 3.4f, 2.6f, 2};
     // arms: x, y, z, rest yaw
-    static final float[][] AP = {{-9, 11, -8, .55f}, {9, 11, -8, -.55f}, {-10, 10, -2, 1.25f}, {10, 10, -2, -1.25f}};
+    static final float[][] AP = {{-9, 11, -8, .55f}, {9, 11, -8, -.55f}, {-10, 10, -2, 1.25f}, {10, 10, -2, -1.25f}, {-5, 5, 4, 2.3f}, {5, 5, 4, -2.3f}}; // 4,5: extra tentacles (Polycheiria)
     static final float[][] LP = {{-10, 15, -8}, {10, 15, -8}, {-11, 15, 0}, {11, 15, 0}, {-10, 15, 8}, {10, 15, 8}};
     static final float[][] SP = {{0, 7, -6}, {-6, 8, -2}, {6, 8, -2}, {0, 6, 2}, {-6, 8, 6}, {6, 8, 6}, {0, 7, 10}};
     static final float[][] PL = {{-8.5f, 13, -8}, {8.5f, 13, -8}, {-8.5f, 13, 0}, {8.5f, 13, 0}, {-8.5f, 13, 8}, {8.5f, 13, 8}};
 
     final ModelPart root, body, hump, head, upper, lower;
-    final ModelPart[][] arm = new ModelPart[4][5], leg = new ModelPart[6][3];
+    final ModelPart[][] arm = new ModelPart[6][5], leg = new ModelPart[6][3];
     final ModelPart[] tail = new ModelPart[6], spine = new ModelPart[7], plate = new ModelPart[6];
     private float plateSm;
 
     public CarrionModel(ModelPart r) {
         root = r; body = r.getChild("body"); hump = r.getChild("hump"); head = r.getChild("head");
         upper = head.getChild("upper"); lower = head.getChild("lower");
-        for (int i = 0; i < 4; i++) chain(r.getChild("arm" + i), arm[i]);
+        for (int i = 0; i < 6; i++) chain(r.getChild("arm" + i), arm[i]);
         for (int i = 0; i < 6; i++) chain(r.getChild("leg" + i), leg[i]);
         chain(r.getChild("tail"), tail);
         for (int i = 0; i < 7; i++) spine[i] = r.getChild("spine" + i);
@@ -73,7 +73,7 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
         CubeListBuilder lo = CubeListBuilder.create().texOffs(60, 96).addBox(-7, 0, -9, 14, 4, 9).texOffs(100, 96);
         for (float x : new float[]{-5, -1.7f, 1.7f, 5}) lo.addBox(x - 1, -3.5f, -9, 2, 3.5f, 2);
         h.addOrReplaceChild("lower", lo, PartPose.ZERO);
-        for (int i = 0; i < 4; i++) addChain(r, "arm" + i, AL, AT, PartPose.offset(AP[i][0], AP[i][1], AP[i][2]), true);
+        for (int i = 0; i < 6; i++) addChain(r, "arm" + i, AL, AT, PartPose.offset(AP[i][0], AP[i][1], AP[i][2]), true);
         for (int i = 0; i < 6; i++) addChain(r, "leg" + i, LL, LT, PartPose.offset(LP[i][0], LP[i][1], LP[i][2]), false);
         addChain(r, "tail", TL, TT, PartPose.offset(0, 15, 12), true);
         for (int i = 0; i < 7; i++)
@@ -96,8 +96,8 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
         // ---- per-frame pose variables (rest values) ----
         float bodySY = 1 + .03f * bob, bodySXZ = 1 - .015f * bob, bodyZS = 1, tilt = 0, offY = 0, offZ = 0, jaw = .08f + .04f * Mth.sin(age * .13f);
         float humpS = 1 + .05f * Mth.sin(age * .11f + 1), shake = 0, spineE = .18f, plateE = 0, tailUp = 0, crouch = 0;
-        float[] yaw = new float[4], base = new float[4], curl = new float[4], str = new float[4];
-        float[] wav = {.35f, .35f, .3f, .3f};
+        float[] yaw = new float[6], base = new float[6], curl = new float[6], str = new float[6];
+        float[] wav = {.35f, .35f, .3f, .3f, .3f, .3f};
         for (int i = 0; i < 4; i++) { yaw[i] = AP[i][3]; base[i] = -.7f; curl[i] = -.42f; str[i] = 1; }
         float legSpread = 0;
 
@@ -306,8 +306,14 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
         head.setPos(0, 16 + offY + crouch * .5f, -12.5f + offZ + Math.min(0, -(bodyZS - 1) * 10)); head.xRot = tilt * .6f;
         upper.xRot = -jaw * .62f; lower.xRot = jaw * .78f;
         head.xRot += Mth.sin(age * .07f) * .02f;
-        // tentacles
-        for (int i = 0; i < 4; i++) {
+        // tentacles (arms 4-5 appear at class 3 and mirror a rear arm)
+        int extra = e.getStage() >= 2 ? 6 : 4;
+        for (int i = 4; i < 6; i++) {
+            int m = i - 2; float sd = i == 4 ? 1 : -1;
+            yaw[i] = yaw[m] + sd * .5f; base[i] = base[m] - .25f; curl[i] = curl[m]; str[i] = str[m] * .9f; wav[i] = .3f;
+        }
+        for (int i = 0; i < 6; i++) arm[i][0].visible = i < extra;
+        for (int i = 0; i < extra; i++) {
             ModelPart[] a = arm[i];
             a[0].setPos(AP[i][0] * bodySXZ, AP[i][1] + offY + crouch * .5f, AP[i][2] + offZ + (bodyZS - 1) * -6);
             a[0].yRot = yaw[i] + sh; a[0].xRot = base[i] + tilt * .3f; a[0].zRot = 0;

@@ -59,6 +59,8 @@ public class CarrionEntity extends Monster {
     private int atkStartAge;
     // server state
     private int atkTick, cooldown = 40, webTicks, hardenTicks, cloakTicks, recentHurt, lastAtk;
+    private final net.minecraft.server.level.ServerBossEvent bar = new net.minecraft.server.level.ServerBossEvent(getDisplayName(),
+            net.minecraft.world.BossEvent.BossBarColor.RED, net.minecraft.world.BossEvent.BossBarOverlay.NOTCHED_10);
     private int biomass, energy = 100;
     private final List<LivingEntity> hooked = new ArrayList<>();
     private boolean enraged, enraged2, ambush;
@@ -100,6 +102,14 @@ public class CarrionEntity extends Monster {
 
     public static boolean isThrall(Entity e) {
         return e != null && e.getPersistentData().getLong(THRALL) > e.level().getGameTime();
+    }
+
+    @Override public void startSeenByPlayer(ServerPlayer p) { super.startSeenByPlayer(p); bar.addPlayer(p); }
+    @Override public void stopSeenByPlayer(ServerPlayer p) { super.stopSeenByPlayer(p); bar.removePlayer(p); }
+    private void updateBar() {
+        bar.setProgress(getHealth() / getMaxHealth());
+        bar.setName(net.minecraft.network.chat.Component.literal("Carrion  Lv." + (getStage() + 1) + "  \u26A1 " + energy + "/" + maxEnergy()));
+        bar.setColor(energy < 25 ? net.minecraft.world.BossEvent.BossBarColor.PURPLE : net.minecraft.world.BossEvent.BossBarColor.RED);
     }
 
     // ---------- energy (Electrosis: cap grows with class) ----------
@@ -232,6 +242,7 @@ public class CarrionEntity extends Monster {
             if (tickCount % 4 == 0) sl().sendParticles(ParticleTypes.BUBBLE, getX(), getY() + .8, getZ(), 6, 1, .5, 1, .05);
         }
         if (tickCount % 6 == 0 && energy < maxEnergy()) energy++;
+        if (tickCount % 5 == 0) updateBar();
         if (tickCount % 10 == 0) eatRemains();
         if (tickCount % 20 == 0) tickHiveCocoon();
         if (getAtk() == NONE && getTarget() == null && random.nextInt(500) == 0) startAttack(ECHO);
