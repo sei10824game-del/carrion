@@ -164,7 +164,19 @@ public class CarrionEntity extends Monster {
         playSound(CarrionMod.S_STEP.get(), 0.8f, 0.9f - 0.1f * getStage());
     }
 
-    private void snd(SoundEvent e, float vol, float pitch) { level().playSound(null, getX(), getY(), getZ(), e, SoundSource.HOSTILE, vol, pitch); }
+    /** Attack sounds: vanilla placeholders used in the attack code are swapped for Carrion's own. */
+    private static SoundEvent own(SoundEvent e) {
+        if (e == SoundEvents.PLAYER_ATTACK_SWEEP) return CarrionMod.S_LASH.get();
+        if (e == SoundEvents.GENERIC_EXPLODE || e == SoundEvents.ANVIL_LAND) return CarrionMod.S_SLAM.get();
+        if (e == SoundEvents.LLAMA_SPIT) return CarrionMod.S_SPIT.get();
+        if (e == SoundEvents.SPIDER_AMBIENT || e == SoundEvents.SPIDER_HURT) return CarrionMod.S_WEB.get();
+        if (e == SoundEvents.RAVAGER_ROAR || e == SoundEvents.WARDEN_ROAR) return CarrionMod.S_ROAR.get();
+        if (e == SoundEvents.GENERIC_EAT) return CarrionMod.S_CHOMP.get();
+        if (e == SoundEvents.TRIDENT_THROW) return CarrionMod.S_HARPOON.get();
+        if (e == SoundEvents.ELDER_GUARDIAN_CURSE) return CarrionMod.S_MIND.get();
+        return e;
+    }
+    private void snd(SoundEvent e, float vol, float pitch) { level().playSound(null, getX(), getY(), getZ(), own(e), SoundSource.HOSTILE, vol, pitch); }
 
     private ServerLevel sl() { return (ServerLevel) level(); }
 

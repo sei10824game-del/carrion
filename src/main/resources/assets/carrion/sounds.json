@@ -1,6 +1,75 @@
 {
- "mob.ambient": {"sounds": ["carrion:mob/ambient1", "carrion:mob/ambient2"], "subtitle": "subtitles.carrion.ambient"},
- "mob.hurt": {"sounds": ["carrion:mob/hurt"], "subtitle": "subtitles.carrion.hurt"},
- "mob.death": {"sounds": ["carrion:mob/death"], "subtitle": "subtitles.carrion.death"},
- "mob.step": {"sounds": ["carrion:mob/step"], "subtitle": "subtitles.carrion.step"}
+ "mob.ambient": {
+  "sounds": [
+   "carrion:mob/ambient1",
+   "carrion:mob/ambient2"
+  ],
+  "subtitle": "subtitles.carrion.ambient"
+ },
+ "mob.hurt": {
+  "sounds": [
+   "carrion:mob/hurt"
+  ],
+  "subtitle": "subtitles.carrion.hurt"
+ },
+ "mob.death": {
+  "sounds": [
+   "carrion:mob/death"
+  ],
+  "subtitle": "subtitles.carrion.death"
+ },
+ "mob.step": {
+  "sounds": [
+   "carrion:mob/step"
+  ],
+  "subtitle": "subtitles.carrion.step"
+ },
+ "mob.lash": {
+  "sounds": [
+   "carrion:mob/lash"
+  ],
+  "subtitle": "subtitles.carrion.lash"
+ },
+ "mob.slam": {
+  "sounds": [
+   "carrion:mob/slam"
+  ],
+  "subtitle": "subtitles.carrion.slam"
+ },
+ "mob.spit": {
+  "sounds": [
+   "carrion:mob/spit"
+  ],
+  "subtitle": "subtitles.carrion.spit"
+ },
+ "mob.web": {
+  "sounds": [
+   "carrion:mob/web"
+  ],
+  "subtitle": "subtitles.carrion.web"
+ },
+ "mob.roar": {
+  "sounds": [
+   "carrion:mob/roar"
+  ],
+  "subtitle": "subtitles.carrion.roar"
+ },
+ "mob.chomp": {
+  "sounds": [
+   "carrion:mob/chomp"
+  ],
+  "subtitle": "subtitles.carrion.chomp"
+ },
+ "mob.harpoon": {
+  "sounds": [
+   "carrion:mob/harpoon"
+  ],
+  "subtitle": "subtitles.carrion.harpoon"
+ },
+ "mob.mind": {
+  "sounds": [
+   "carrion:mob/mind"
+  ],
+  "subtitle": "subtitles.carrion.mind"
+ }
 }

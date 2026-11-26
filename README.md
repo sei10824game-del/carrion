@@ -37,4 +37,5 @@ Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hiv
 - Defaults: hive = nether wart block, red mushroom block, shroomlight; cocoon = cobweb, slime block, honey block.
 - Items: **Hive Spore** / **Cocoon Spore** (Ingredients tab) convert any right-clicked block (not unbreakable or block entities) into a Hive / Cocoon block, which are in the tags by default.
 - Armored prey (armor value > 0) cannot be devoured.
+- Attack sounds (lash, slam, spit, web, roar, chomp, harpoon, mind) are synthesized originals.
 - A boss bar shows Carrion's health, class and energy (visible to nearby players). Class 3+ grows two extra tentacles (Polycheiria).
