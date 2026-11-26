@@ -40,6 +40,8 @@ public class CarrionMod {
             () -> EntityType.Builder.of(SentryTurret::new, MobCategory.MONSTER).sized(1.0f, 1.5f).clientTrackingRange(10).build("sentry_turret"));
     public static final RegistryObject<EntityType<FlameTurret>> FLAME_TURRET = ENTITIES.register("flame_turret",
             () -> EntityType.Builder.of(FlameTurret::new, MobCategory.MONSTER).sized(1.0f, 1.5f).clientTrackingRange(10).fireImmune().build("flame_turret"));
+    public static final RegistryObject<EntityType<SentryMech>> MECH = ENTITIES.register("sentry_mech",
+            () -> EntityType.Builder.of(SentryMech::new, MobCategory.MONSTER).sized(1.2f, 2.5f).clientTrackingRange(10).build("sentry_mech"));
     public static final RegistryObject<EntityType<SentryDrone>> DRONE = ENTITIES.register("sentry_drone",
             () -> EntityType.Builder.of(SentryDrone::new, MobCategory.MONSTER).sized(.8f, .6f).clientTrackingRange(10).build("sentry_drone"));
     public static final RegistryObject<EntityType<StickyMine>> MINE = ENTITIES.register("sticky_mine",
@@ -72,6 +74,7 @@ public class CarrionMod {
         }
     });
     public static final RegistryObject<Item> FLAME_EGG = ITEMS.register("flame_turret_spawn_egg", () -> new ForgeSpawnEggItem(FLAME_TURRET, 0x55595e, 0xff8a00, new Item.Properties()));
+    public static final RegistryObject<Item> MECH_EGG = ITEMS.register("sentry_mech_spawn_egg", () -> new ForgeSpawnEggItem(MECH, 0x55595e, 0x2060ff, new Item.Properties()));
     public static final RegistryObject<Item> EGG = ITEMS.register("carrion_spawn_egg",
             () -> new ForgeSpawnEggItem(CARRION, 0x4a0910, 0xc4352f, new Item.Properties()));
 
@@ -91,6 +94,7 @@ public class CarrionMod {
             e.put(CARRION.get(), CarrionEntity.createAttributes().build());
             e.put(TURRET.get(), SentryTurret.createAttributes().build());
             e.put(FLAME_TURRET.get(), SentryTurret.createAttributes().build());
+            e.put(MECH.get(), SentryMech.createAttributes().build());
             e.put(DRONE.get(), SentryDrone.createAttributes().build());
         }
 
@@ -102,7 +106,7 @@ public class CarrionMod {
 
         @SubscribeEvent
         public static void tab(BuildCreativeModeTabContentsEvent e) {
-            if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(TURRET_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(DRONE_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(FLAME_EGG);
+            if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(TURRET_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(DRONE_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(FLAME_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(MECH_EGG);
             if (e.getTabKey() == CreativeModeTabs.COMBAT) e.accept(MINE_ITEM);
             if (e.getTabKey() == CreativeModeTabs.INGREDIENTS) { e.accept(HIVE_SPORE); e.accept(COCOON_SPORE); }
             if (e.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) { e.accept(HIVE_ITEM); e.accept(COCOON_ITEM); }

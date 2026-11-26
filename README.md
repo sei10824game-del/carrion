@@ -45,3 +45,4 @@ Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hiv
 - **Sentry Drone** (spawn egg): hovers above Carrion firing 3-round bursts. A web hit grounds it (fall damage, then it recovers); slash dash and harpoon destroy it instantly.
 - **Sticky Mine** (Combat tab, right-click a block to plant): sticks to Carrion within 2.5 blocks, detonates after 5s for 60% of its max HP and 8 damage nearby. Carrion sheds it with a spine burst/roar (needs energy), or blocks it with the carapace (which drains all energy). Tendril attacks also peel it off.
 - **Flame Turret** (spawn egg): short-range (11 blocks) fire sprayer; sets Carrion ablaze (higher classes resist fire better).
+- **Sentry Mech** (spawn egg): walking gatling mech with 3 armour plates (takes 15% damage while plated). Tendril attacks and web hits tear plates off; once bare it takes full damage.
