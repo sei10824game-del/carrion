@@ -40,6 +40,8 @@ public class CarrionMod {
             () -> EntityType.Builder.of(SentryTurret::new, MobCategory.MONSTER).sized(1.0f, 1.5f).clientTrackingRange(10).build("sentry_turret"));
     public static final RegistryObject<EntityType<SentryDrone>> DRONE = ENTITIES.register("sentry_drone",
             () -> EntityType.Builder.of(SentryDrone::new, MobCategory.MONSTER).sized(.8f, .6f).clientTrackingRange(10).build("sentry_drone"));
+    public static final RegistryObject<EntityType<StickyMine>> MINE = ENTITIES.register("sticky_mine",
+            () -> EntityType.Builder.<StickyMine>of(StickyMine::new, MobCategory.MISC).sized(.5f, .25f).clientTrackingRange(8).updateInterval(2).build("sticky_mine"));
     public static final RegistryObject<EntityType<CarrionShot>> SHOT = ENTITIES.register("carrion_shot",
             () -> EntityType.Builder.<CarrionShot>of(CarrionShot::new, MobCategory.MISC).sized(0.4f, 0.4f)
                     .clientTrackingRange(8).updateInterval(2).build("carrion_shot"));
@@ -57,6 +59,16 @@ public class CarrionMod {
     static RegistryObject<net.minecraft.sounds.SoundEvent> snd(String n) { return SOUNDS.register(n, () -> net.minecraft.sounds.SoundEvent.createVariableRangeEvent(new net.minecraft.resources.ResourceLocation(ID, n))); }
     public static final RegistryObject<Item> TURRET_EGG = ITEMS.register("sentry_turret_spawn_egg", () -> new ForgeSpawnEggItem(TURRET, 0x55595e, 0xd02020, new Item.Properties()));
     public static final RegistryObject<Item> DRONE_EGG = ITEMS.register("sentry_drone_spawn_egg", () -> new ForgeSpawnEggItem(DRONE, 0x55595e, 0x20d0d0, new Item.Properties()));
+    /** Right-click a block to plant a sticky mine on it. */
+    public static final RegistryObject<Item> MINE_ITEM = ITEMS.register("sticky_mine", () -> new Item(new Item.Properties().stacksTo(16)) {
+        @Override public InteractionResult useOn(net.minecraft.world.item.context.UseOnContext c) {
+            var l = c.getLevel(); if (l.isClientSide) return InteractionResult.SUCCESS;
+            var p = c.getClickedPos().relative(c.getClickedFace()); var m = MINE.get().create(l);
+            m.setPos(p.getX() + .5, p.getY(), p.getZ() + .5); l.addFreshEntity(m);
+            if (c.getPlayer() == null || !c.getPlayer().getAbilities().instabuild) c.getItemInHand().shrink(1);
+            return InteractionResult.CONSUME;
+        }
+    });
     public static final RegistryObject<Item> EGG = ITEMS.register("carrion_spawn_egg",
             () -> new ForgeSpawnEggItem(CARRION, 0x4a0910, 0xc4352f, new Item.Properties()));
 
@@ -87,6 +99,7 @@ public class CarrionMod {
         @SubscribeEvent
         public static void tab(BuildCreativeModeTabContentsEvent e) {
             if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(TURRET_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(DRONE_EGG);
+            if (e.getTabKey() == CreativeModeTabs.COMBAT) e.accept(MINE_ITEM);
             if (e.getTabKey() == CreativeModeTabs.INGREDIENTS) { e.accept(HIVE_SPORE); e.accept(COCOON_SPORE); }
             if (e.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) { e.accept(HIVE_ITEM); e.accept(COCOON_ITEM); }
         }

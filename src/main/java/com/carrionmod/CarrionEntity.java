@@ -61,6 +61,7 @@ public class CarrionEntity extends Monster {
     private int atkTick, cooldown = 40, webTicks, hardenTicks, cloakTicks, recentHurt, lastAtk;
     private final net.minecraft.server.level.ServerBossEvent bar = new net.minecraft.server.level.ServerBossEvent(getDisplayName(),
             net.minecraft.world.BossEvent.BossBarColor.RED, net.minecraft.world.BossEvent.BossBarOverlay.NOTCHED_10);
+    public int bombs;
     private int biomass, energy = 100;
     private final List<LivingEntity> hooked = new ArrayList<>();
     private boolean enraged, enraged2, ambush;
@@ -114,6 +115,7 @@ public class CarrionEntity extends Monster {
 
     // ---------- energy (Electrosis: cap grows with class) ----------
     public int maxEnergy() { return 100 + 50 * getStage(); }
+    public void drainEnergy() { energy = 0; }
     private boolean spend(int n) { if (energy < n) return false; energy -= n; return true; }
 
     @Override public net.minecraft.world.entity.SpawnGroupData finalizeSpawn(net.minecraft.world.level.ServerLevelAccessor w, net.minecraft.world.DifficultyInstance d,
@@ -255,6 +257,10 @@ public class CarrionEntity extends Monster {
         }
         if (tickCount % 6 == 0 && energy < maxEnergy()) energy++;
         if (tickCount % 5 == 0) updateBar();
+        if (bombs > 0 && getAtk() == NONE && cooldown < 6) { // a mine is stuck on: carapace it, shed it, or brace
+            if (getStage() >= 2 && energy >= 35 && hardenTicks <= 0) startAttack(HARDEN);
+            else if (getStage() >= 1 && energy >= 35) startAttack(BURST);
+        }
         if (tickCount % 10 == 0) eatRemains();
         if (tickCount % 20 == 0) tickHiveCocoon();
         if (getAtk() == NONE && getTarget() == null && random.nextInt(500) == 0) startAttack(ECHO);

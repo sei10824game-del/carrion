@@ -43,3 +43,4 @@ Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hiv
 - **Power nodes** (tag `carrion:power_nodes`: lightning rod, redstone/copper block, lodestone by default) recharge energy fast.
 - **Sentry Turret** (spawn egg): stationary armoured gun that targets Carrion, takes half damage from projectiles.
 - **Sentry Drone** (spawn egg): hovers above Carrion firing 3-round bursts. A web hit grounds it (fall damage, then it recovers); slash dash and harpoon destroy it instantly.
+- **Sticky Mine** (Combat tab, right-click a block to plant): sticks to Carrion within 2.5 blocks, detonates after 5s for 60% of its max HP and 8 damage nearby. Carrion sheds it with a spine burst/roar (needs energy), or blocks it with the carapace (which drains all energy). Tendril attacks also peel it off.
