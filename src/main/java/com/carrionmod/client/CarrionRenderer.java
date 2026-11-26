@@ -31,7 +31,7 @@ public class CarrionRenderer extends MobRenderer<CarrionEntity, CarrionModel> {
     @Override protected float getFlipDegrees(CarrionEntity e) { return 0; }
 
     @Override protected void scale(CarrionEntity e, PoseStack ps, float pt) {
-        float s = e.scale();
+        float s = e.scale() * (1 - .55f * e.swarm(pt));
         float dt = e.deathTime > 0 ? Math.min(1, (e.deathTime + pt) / 20f) : 0; // melt on death
         ps.scale(s * (1 + .5f * dt), s * (1 - .92f * dt), s * (1 + .5f * dt));
         shadowRadius = 1.5f * s;

@@ -124,7 +124,16 @@ public class CarrionEntity extends Monster {
     public float scale() { return 1f + 0.38f * getStage(); }
     public double dmg(double mult) { return getAttributeValue(Attributes.ATTACK_DAMAGE) * mult * (1 + 0.22 * getStage()) * (ambush ? 1.5 : 1); }
 
-    @Override public EntityDimensions getDimensions(Pose p) { return super.getDimensions(p).scale(scale()); }
+    /** Hydrophilia: in water the mass breaks into a swarm of worms and shrinks to slip through tight gaps. */
+    public float morph, morphO;
+    private boolean morphed;
+    public float swarm(float pt) { return Mth.lerp(pt, morphO, morph); }
+    @Override public void tick() {
+        super.tick();
+        morphO = morph; morph += ((isInWater() ? 1f : 0f) - morph) * .2f;
+        if (morphed != morph > .5f) { morphed = morph > .5f; refreshDimensions(); }
+    }
+    @Override public EntityDimensions getDimensions(Pose p) { return super.getDimensions(p).scale(scale() * (morphed ? .4f : 1f)); }
     @Override public float maxUpStep() { return 1.1f * scale(); }
     @Override public boolean causeFallDamage(float f, float m, DamageSource s) { return false; }
     @Override public boolean isPushedByFluid() { return false; }
@@ -345,6 +354,7 @@ public class CarrionEntity extends Monster {
     }
 
     private boolean canConsume(LivingEntity t) {
+        if (t.getArmorValue() > 0) return false; // armored prey cannot be devoured
         return t.getBbWidth() < 2.5f && (t.getHealth() <= t.getMaxHealth() * .35f || t.getMaxHealth() <= 24) && t.getMaxHealth() < 120;
     }
 

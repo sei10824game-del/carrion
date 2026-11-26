@@ -14,7 +14,7 @@ Adds **Carrion**, an amorphous flesh monster (original design, procedural tendri
 | Roar | shockwave, then Strength/Speed frenzy (at 50% and 20% HP) |
 | Mind Control | tendril into a nearby monster, which then fights for Carrion |
 | Harden | spiked carapace: 65% less damage, reflects melee hits |
-| Hydrophilia | no drowning, fast swimming in water |
+| Hydrophilia | no drowning, fast swimming; shrinks to a worm swarm (40% hitbox) in water to slip through gaps |
 | Slash Dash (class 2+) | coil, then a shredding dash that breaks wooden blocks |
 | Harpoon Vortex (class 3) | fan of tendril harpoons, then reels the catch back in |
 | Echolocation | idle pulse that outlines prey and edible remains |
@@ -36,3 +36,4 @@ Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hiv
 - Cocoon blocks within 3 blocks: reabsorbed (+5 biomass) when hurt. A healthy Carrion in water deposits surplus biomass as cocoons.
 - Defaults: hive = nether wart block, red mushroom block, shroomlight; cocoon = cobweb, slime block, honey block.
 - Items: **Hive Spore** / **Cocoon Spore** (Ingredients tab) convert any right-clicked block (not unbreakable or block entities) into a Hive / Cocoon block, which are in the tags by default.
+- Armored prey (armor value > 0) cannot be devoured.
