@@ -36,6 +36,8 @@ public class CarrionMod {
     public static final RegistryObject<EntityType<CarrionEntity>> CARRION = ENTITIES.register("carrion",
             () -> EntityType.Builder.of(CarrionEntity::new, MobCategory.MONSTER).sized(2.6f, 1.6f)
                     .clientTrackingRange(10).build("carrion"));
+    public static final RegistryObject<EntityType<SentryTurret>> TURRET = ENTITIES.register("sentry_turret",
+            () -> EntityType.Builder.of(SentryTurret::new, MobCategory.MONSTER).sized(1.0f, 1.5f).clientTrackingRange(10).build("sentry_turret"));
     public static final RegistryObject<EntityType<CarrionShot>> SHOT = ENTITIES.register("carrion_shot",
             () -> EntityType.Builder.<CarrionShot>of(CarrionShot::new, MobCategory.MISC).sized(0.4f, 0.4f)
                     .clientTrackingRange(8).updateInterval(2).build("carrion_shot"));
@@ -51,6 +53,7 @@ public class CarrionMod {
     public static final RegistryObject<net.minecraft.sounds.SoundEvent> S_AMBIENT = snd("mob.ambient"), S_HURT = snd("mob.hurt"), S_DEATH = snd("mob.death"), S_STEP = snd("mob.step"),
             S_LASH = snd("mob.lash"), S_SLAM = snd("mob.slam"), S_SPIT = snd("mob.spit"), S_WEB = snd("mob.web"), S_ROAR = snd("mob.roar"), S_CHOMP = snd("mob.chomp"), S_HARPOON = snd("mob.harpoon"), S_MIND = snd("mob.mind");
     static RegistryObject<net.minecraft.sounds.SoundEvent> snd(String n) { return SOUNDS.register(n, () -> net.minecraft.sounds.SoundEvent.createVariableRangeEvent(new net.minecraft.resources.ResourceLocation(ID, n))); }
+    public static final RegistryObject<Item> TURRET_EGG = ITEMS.register("sentry_turret_spawn_egg", () -> new ForgeSpawnEggItem(TURRET, 0x55595e, 0xd02020, new Item.Properties()));
     public static final RegistryObject<Item> EGG = ITEMS.register("carrion_spawn_egg",
             () -> new ForgeSpawnEggItem(CARRION, 0x4a0910, 0xc4352f, new Item.Properties()));
 
@@ -68,6 +71,7 @@ public class CarrionMod {
         @SubscribeEvent
         public static void attrs(EntityAttributeCreationEvent e) {
             e.put(CARRION.get(), CarrionEntity.createAttributes().build());
+            e.put(TURRET.get(), SentryTurret.createAttributes().build());
         }
 
         @SubscribeEvent
@@ -78,7 +82,7 @@ public class CarrionMod {
 
         @SubscribeEvent
         public static void tab(BuildCreativeModeTabContentsEvent e) {
-            if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(EGG);
+            if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(TURRET_EGG);
             if (e.getTabKey() == CreativeModeTabs.INGREDIENTS) { e.accept(HIVE_SPORE); e.accept(COCOON_SPORE); }
             if (e.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) { e.accept(HIVE_ITEM); e.accept(COCOON_ITEM); }
         }

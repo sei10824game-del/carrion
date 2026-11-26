@@ -41,3 +41,4 @@ Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hiv
 - A boss bar shows Carrion's health, class and energy (visible to nearby players). Class 3+ grows two extra tentacles (Polycheiria).
 - **Parasitism** (class 2+): burrows into an unarmored villager/illager/witch, swells it from within, bursts out for biomass and healing.
 - **Power nodes** (tag `carrion:power_nodes`: lightning rod, redstone/copper block, lodestone by default) recharge energy fast.
+- **Sentry Turret** (spawn egg): stationary armoured gun that targets Carrion, takes half damage from projectiles.

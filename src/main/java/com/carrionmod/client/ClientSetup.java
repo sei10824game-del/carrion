@@ -12,11 +12,13 @@ public class ClientSetup {
     public static void layers(EntityRenderersEvent.RegisterLayerDefinitions e) {
         e.registerLayerDefinition(CarrionModel.LAYER, CarrionModel::createBodyLayer);
         e.registerLayerDefinition(ShotRenderer.LAYER, ShotRenderer::layer);
+        e.registerLayerDefinition(TurretRenderer.LAYER, TurretRenderer::layer);
     }
 
     @SubscribeEvent
     public static void renderers(EntityRenderersEvent.RegisterRenderers e) {
         e.registerEntityRenderer(CarrionMod.CARRION.get(), CarrionRenderer::new);
         e.registerEntityRenderer(CarrionMod.SHOT.get(), ShotRenderer::new);
+        e.registerEntityRenderer(CarrionMod.TURRET.get(), TurretRenderer::new);
     }
 }
