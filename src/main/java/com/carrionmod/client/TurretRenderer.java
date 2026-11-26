@@ -18,7 +18,8 @@ public class TurretRenderer extends MobRenderer<SentryTurret, TurretRenderer.Mod
     static final ResourceLocation TEX = new ResourceLocation(CarrionMod.ID, "textures/entity/turret.png");
 
     public TurretRenderer(EntityRendererProvider.Context c) { super(c, new Model(c.bakeLayer(LAYER)), .6f); }
-    @Override public ResourceLocation getTextureLocation(SentryTurret e) { return TEX; }
+    static final ResourceLocation FLAME = new ResourceLocation(CarrionMod.ID, "textures/entity/flame_turret.png");
+    @Override public ResourceLocation getTextureLocation(SentryTurret e) { return e instanceof com.carrionmod.FlameTurret ? FLAME : TEX; }
 
     public static LayerDefinition layer() {
         MeshDefinition m = new MeshDefinition(); PartDefinition r = m.getRoot();

@@ -23,6 +23,7 @@ public class ClientSetup {
         e.registerEntityRenderer(CarrionMod.SHOT.get(), ShotRenderer::new);
         e.registerEntityRenderer(CarrionMod.TURRET.get(), TurretRenderer::new);
         e.registerEntityRenderer(CarrionMod.DRONE.get(), DroneRenderer::new);
+        e.registerEntityRenderer(CarrionMod.FLAME_TURRET.get(), TurretRenderer::new);
         e.registerEntityRenderer(CarrionMod.MINE.get(), MineRenderer::new);
     }
 }

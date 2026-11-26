@@ -25,10 +25,13 @@ public class SentryTurret extends Monster implements RangedAttackMob {
     }
 
     @Override protected void registerGoals() {
-        goalSelector.addGoal(1, new RangedAttackGoal(this, 0, 6, 28f));
+        goalSelector.addGoal(1, new RangedAttackGoal(this, 0, interval(), range()));
         goalSelector.addGoal(2, new LookAtPlayerGoal(this, net.minecraft.world.entity.player.Player.class, 10));
         targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, CarrionEntity.class, 0, true, false, x -> true));
     }
+
+    protected int interval() { return 6; }
+    protected float range() { return 28f; }
 
     @Override public void performRangedAttack(LivingEntity t, float p) {
         Arrow a = new Arrow(level(), this);

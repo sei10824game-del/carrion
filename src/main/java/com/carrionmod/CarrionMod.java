@@ -38,6 +38,8 @@ public class CarrionMod {
                     .clientTrackingRange(10).build("carrion"));
     public static final RegistryObject<EntityType<SentryTurret>> TURRET = ENTITIES.register("sentry_turret",
             () -> EntityType.Builder.of(SentryTurret::new, MobCategory.MONSTER).sized(1.0f, 1.5f).clientTrackingRange(10).build("sentry_turret"));
+    public static final RegistryObject<EntityType<FlameTurret>> FLAME_TURRET = ENTITIES.register("flame_turret",
+            () -> EntityType.Builder.of(FlameTurret::new, MobCategory.MONSTER).sized(1.0f, 1.5f).clientTrackingRange(10).fireImmune().build("flame_turret"));
     public static final RegistryObject<EntityType<SentryDrone>> DRONE = ENTITIES.register("sentry_drone",
             () -> EntityType.Builder.of(SentryDrone::new, MobCategory.MONSTER).sized(.8f, .6f).clientTrackingRange(10).build("sentry_drone"));
     public static final RegistryObject<EntityType<StickyMine>> MINE = ENTITIES.register("sticky_mine",
@@ -69,6 +71,7 @@ public class CarrionMod {
             return InteractionResult.CONSUME;
         }
     });
+    public static final RegistryObject<Item> FLAME_EGG = ITEMS.register("flame_turret_spawn_egg", () -> new ForgeSpawnEggItem(FLAME_TURRET, 0x55595e, 0xff8a00, new Item.Properties()));
     public static final RegistryObject<Item> EGG = ITEMS.register("carrion_spawn_egg",
             () -> new ForgeSpawnEggItem(CARRION, 0x4a0910, 0xc4352f, new Item.Properties()));
 
@@ -87,6 +90,7 @@ public class CarrionMod {
         public static void attrs(EntityAttributeCreationEvent e) {
             e.put(CARRION.get(), CarrionEntity.createAttributes().build());
             e.put(TURRET.get(), SentryTurret.createAttributes().build());
+            e.put(FLAME_TURRET.get(), SentryTurret.createAttributes().build());
             e.put(DRONE.get(), SentryDrone.createAttributes().build());
         }
 
@@ -98,7 +102,7 @@ public class CarrionMod {
 
         @SubscribeEvent
         public static void tab(BuildCreativeModeTabContentsEvent e) {
-            if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(TURRET_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(DRONE_EGG);
+            if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(TURRET_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(DRONE_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(FLAME_EGG);
             if (e.getTabKey() == CreativeModeTabs.COMBAT) e.accept(MINE_ITEM);
             if (e.getTabKey() == CreativeModeTabs.INGREDIENTS) { e.accept(HIVE_SPORE); e.accept(COCOON_SPORE); }
             if (e.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) { e.accept(HIVE_ITEM); e.accept(COCOON_ITEM); }
