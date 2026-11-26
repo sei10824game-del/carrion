@@ -196,6 +196,7 @@ public class CarrionEntity extends Monster {
                 snd(SoundEvents.ANVIL_PLACE, .4f, 1.6f);
             }
         }
+        if (getStage() >= 1 && src.is(net.minecraft.tags.DamageTypeTags.WITCH_RESISTANT_TO)) amt *= .5f; // Acid Immunity: magic/acid damage halved
         if (src.is(net.minecraft.tags.DamageTypeTags.IS_FIRE)) amt *= Math.max(0, .6f - .3f * getStage()); // Pyrophilia
         if (cloakTicks > 0) uncloak();
         recentHurt = 60;
@@ -256,6 +257,7 @@ public class CarrionEntity extends Monster {
             if (tickCount % 4 == 0) sl().sendParticles(ParticleTypes.BUBBLE, getX(), getY() + .8, getZ(), 6, 1, .5, 1, .05);
         }
         if (tickCount % 6 == 0 && energy < maxEnergy()) energy++;
+        if (getStage() >= 1 && hasEffect(MobEffects.POISON)) removeEffect(MobEffects.POISON); // Acid Immunity (class 2+)
         if (tickCount % 5 == 0) updateBar();
         if (bombs > 0 && getAtk() == NONE && cooldown < 6) { // a mine is stuck on: carapace it, shed it, or brace
             if (getStage() >= 2 && energy >= 35 && hardenTicks <= 0) startAttack(HARDEN);

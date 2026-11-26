@@ -48,3 +48,4 @@ Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hiv
 - **Sentry Mech** (spawn egg): walking gatling mech with 3 armour plates (takes 15% damage while plated). Tendril attacks and web hits tear plates off; once bare it takes full damage.
 - **Turbine** block (Building Blocks tab): animated spinning blades; 6 damage on contact to anything, and strips an active carapace of all energy. Mobs path around it.
 - **Parasite Spore** (Ingredients tab): right-click any mob to make it your thrall for 5 minutes; it follows you and attacks what you attack. (Direct control of a mob is not implemented.)
+- **Acid Immunity** (class 2+): immune to poison, halves magic damage. Thermovision is folded into Echolocation (outlines all living things and meat).
