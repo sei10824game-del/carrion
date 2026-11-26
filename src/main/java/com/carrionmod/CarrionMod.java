@@ -77,6 +77,21 @@ public class CarrionMod {
     });
     public static final RegistryObject<Item> FLAME_EGG = ITEMS.register("flame_turret_spawn_egg", () -> new ForgeSpawnEggItem(FLAME_TURRET, 0x55595e, 0xff8a00, new Item.Properties()));
     public static final RegistryObject<Item> MECH_EGG = ITEMS.register("sentry_mech_spawn_egg", () -> new ForgeSpawnEggItem(MECH, 0x55595e, 0x2060ff, new Item.Properties()));
+    /** Right-click a mob: it becomes your thrall for 5 minutes, follows you and fights what you fight. */
+    public static final RegistryObject<Item> PARASITE_SPORE = ITEMS.register("parasite_spore", () -> new Item(new Item.Properties().stacksTo(16)) {
+        @Override public net.minecraft.world.InteractionResult interactLivingEntity(net.minecraft.world.item.ItemStack st, net.minecraft.world.entity.player.Player p, net.minecraft.world.entity.LivingEntity e, net.minecraft.world.InteractionHand h) {
+            if (!(e instanceof Mob m) || e instanceof CarrionEntity || e instanceof net.minecraft.world.entity.player.Player) return net.minecraft.world.InteractionResult.PASS;
+            if (!p.level().isClientSide) {
+                m.getPersistentData().putLong(CarrionEntity.THRALL, p.level().getGameTime() + 6000);
+                m.getPersistentData().putUUID("CarrionOwner", p.getUUID());
+                m.setTarget(null);
+                m.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.GLOWING, 6000, 0, false, false));
+                p.level().playSound(null, m.blockPosition(), net.minecraft.sounds.SoundEvents.SLIME_ATTACK, net.minecraft.sounds.SoundSource.PLAYERS, 1, .5f);
+                if (!p.getAbilities().instabuild) st.shrink(1);
+            }
+            return net.minecraft.world.InteractionResult.sidedSuccess(p.level().isClientSide);
+        }
+    });
     public static final RegistryObject<Item> EGG = ITEMS.register("carrion_spawn_egg",
             () -> new ForgeSpawnEggItem(CARRION, 0x4a0910, 0xc4352f, new Item.Properties()));
 
@@ -110,7 +125,7 @@ public class CarrionMod {
         public static void tab(BuildCreativeModeTabContentsEvent e) {
             if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(TURRET_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(DRONE_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(FLAME_EGG); if (e.getTabKey() == CreativeModeTabs.SPAWN_EGGS) e.accept(MECH_EGG);
             if (e.getTabKey() == CreativeModeTabs.COMBAT) e.accept(MINE_ITEM);
-            if (e.getTabKey() == CreativeModeTabs.INGREDIENTS) { e.accept(HIVE_SPORE); e.accept(COCOON_SPORE); }
+            if (e.getTabKey() == CreativeModeTabs.INGREDIENTS) { e.accept(HIVE_SPORE); e.accept(PARASITE_SPORE); e.accept(COCOON_SPORE); }
             if (e.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) { e.accept(HIVE_ITEM); e.accept(TURBINE_ITEM); e.accept(COCOON_ITEM); }
         }
     }
@@ -125,6 +140,17 @@ public class CarrionMod {
             } else if (m instanceof PathfinderMob p) {
                 p.goalSelector.addGoal(0, new AvoidEntityGoal<>(p, CarrionEntity.class, 18f, 1.3, 1.7));
             }
+        }
+
+        /** Thralls owned by a player follow them and attack what they attack. */
+        @SubscribeEvent
+        public static void thrallTick(net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent e) {
+            if (!(e.getEntity() instanceof Mob m) || m.level().isClientSide || m.tickCount % 10 != 0 || !CarrionEntity.isThrall(m) || !m.getPersistentData().hasUUID("CarrionOwner")) return;
+            var o = m.level().getPlayerByUUID(m.getPersistentData().getUUID("CarrionOwner"));
+            if (o == null || o.level() != m.level()) return;
+            LivingEntity t = o.getLastHurtMob() != null && o.tickCount - o.getLastHurtMobTimestamp() < 200 ? o.getLastHurtMob() : o.getLastHurtByMob();
+            if (t != null && t.isAlive() && t != m) m.setTarget(t);
+            else if (m.getTarget() == null || m.getTarget() == o) { m.setTarget(null); if (m.distanceToSqr(o) > 36) m.getNavigation().moveTo(o, 1.2); }
         }
 
         @SubscribeEvent

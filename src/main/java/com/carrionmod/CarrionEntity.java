@@ -46,7 +46,7 @@ public class CarrionEntity extends Monster {
     public static final int NONE = 0, LASH = 1, GRAB = 2, WEB = 3, SPIT = 4, LUNGE = 5, BURST = 6, CONSUME = 7, ROAR = 8, MIND = 9, HARDEN = 10, DASH = 11, HARPOON = 12, ECHO = 13, PARASITE = 14;
     public static final int[] LEN = {0, 38, 66, 40, 34, 46, 52, 78, 48, 46, 36, 40, 44, 44, 50};
     public static final int T_NONE = 0, T_WEB = 1, T_FLESH = 2, T_MIND = 3;
-    private static final String THRALL = "CarrionThrallUntil";
+    static final String THRALL = "CarrionThrallUntil";
     private static final int[] STAGE_BIOMASS = {0, 60, 160, 320};
 
     private static final EntityDataAccessor<Integer> ATTACK = SynchedEntityData.defineId(CarrionEntity.class, EntityDataSerializers.INT);
