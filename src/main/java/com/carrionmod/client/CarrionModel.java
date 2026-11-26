@@ -92,6 +92,7 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
     public void setupAnim(CarrionEntity e, float limb, float limbAmt, float age, float yawHead, float pitchHead) {
         int atk = e.getAtk();
         float p = e.attackProgress(age);
+        if (atk == CarrionEntity.BITE) p *= 1.5f; // same pose timeline as consume, compressed
         float bob = Mth.sin(age * .09f);
         // ---- per-frame pose variables (rest values) ----
         float bodySY = 1 + .03f * bob, bodySXZ = 1 - .015f * bob, bodyZS = 1, tilt = 0, offY = 0, offZ = 0, jaw = .08f + .04f * Mth.sin(age * .13f);
@@ -125,8 +126,8 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
                 jaw = .5f * (s1 + s2) - .3f * (r1 + r2) * .5f + .1f;
                 spineE = .5f;
             }
-            case CarrionEntity.GRAB, CarrionEntity.CONSUME -> {
-                boolean eat = atk == CarrionEntity.CONSUME;
+            case CarrionEntity.GRAB, CarrionEntity.CONSUME, CarrionEntity.BITE, CarrionEntity.WALLSLAM -> {
+                boolean eat = atk == CarrionEntity.CONSUME || atk == CarrionEntity.BITE;
                 float reach = ph(p, 0, 12), pull = ph(p, 12, eat ? 24 : 28), hold = eat ? 0 : ph(p, 28, 40), slam = eat ? 0 : ph(p, 40, 47), rec = ph(p, eat ? 70 : 52, eat ? 78 : 66);
                 for (int i = 0; i < 2; i++) { // the two front arms do the grabbing
                     float side = i == 0 ? 1 : -1;
@@ -299,6 +300,20 @@ public class CarrionModel extends EntityModel<CarrionEntity> {
         // ---- rest-state ripples ----
         float walk = limb * .55f, amt = Mth.clamp(limbAmt * 1.5f, 0, 1);
         float wob = atk == 0 ? 1 : .4f;
+        if (atk == 0) { // locomotion: tentacles reach, stick to the surface and haul the mass (no stepping)
+            float cyc = limb * .5f, a = amt; boolean up = e.isClimbing();
+            for (int i = 0; i < 4; i++) {
+                float ph = cyc + (i % 2) * Mth.PI + (i / 2) * Mth.HALF_PI;
+                float sn = Mth.sin(ph), reach = Math.max(0, sn), pull = Math.max(0, -sn);
+                float tb = up ? -2.55f + .25f * sn : (i < 2 ? -.7f - 1.05f * reach + .55f * pull : -.9f - .5f * reach + .3f * pull);
+                float ty = i < 2 ? AP[i][3] * (1 - .5f * reach) : AP[i][3] * (1 + .25f * reach);
+                float tc = up ? -.25f : -.42f + .35f * reach - .3f * pull; // tip curls into the surface while pulling
+                float ts = 1 + (up ? .5f : .55f) * reach;
+                base[i] = lerp(a, base[i], tb); yaw[i] = lerp(a, yaw[i], ty); curl[i] = lerp(a, curl[i], tc); str[i] = lerp(a, str[i], ts);
+            }
+            float surge = Mth.sin(cyc + 1f) * a; // the body surges forward as the anchors haul
+            bodyZS += .1f * surge; bodySY -= .05f * surge; offZ += -1.2f * surge; tilt += up ? -.9f * a : .04f * surge;
+        }
         // apply body
         float sh = shake * Mth.sin(age * 2.1f) * .06f;
         body.setPos(0, 20 + offY + crouch * .5f, offZ); body.yScale = bodySY; body.xScale = bodySXZ; body.zScale = bodySXZ * bodyZS; body.xRot = tilt * .5f; body.zRot = sh; body.yRot = sh;

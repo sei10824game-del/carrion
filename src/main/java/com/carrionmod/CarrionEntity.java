@@ -43,16 +43,18 @@ import java.util.*;
  * and grows by eating what it kills. Hated by (and hating) every other mob.
  */
 public class CarrionEntity extends Monster {
-    public static final int NONE = 0, LASH = 1, GRAB = 2, WEB = 3, SPIT = 4, LUNGE = 5, BURST = 6, CONSUME = 7, ROAR = 8, MIND = 9, HARDEN = 10, DASH = 11, HARPOON = 12, ECHO = 13, PARASITE = 14;
-    public static final int[] LEN = {0, 38, 66, 40, 34, 46, 52, 78, 48, 46, 36, 40, 44, 44, 50};
+    public static final int NONE = 0, LASH = 1, GRAB = 2, WEB = 3, SPIT = 4, LUNGE = 5, BURST = 6, CONSUME = 7, ROAR = 8, MIND = 9, HARDEN = 10, DASH = 11, HARPOON = 12, ECHO = 13, PARASITE = 14, BITE = 15, WALLSLAM = 16;
+    static boolean isGrab(int a) { return a == GRAB || a == CONSUME || a == BITE || a == WALLSLAM; }
+    public static final int[] LEN = {0, 38, 66, 40, 34, 46, 52, 78, 48, 46, 36, 40, 44, 44, 50, 56, 66};
     public static final int T_NONE = 0, T_WEB = 1, T_FLESH = 2, T_MIND = 3;
     static final String THRALL = "CarrionThrallUntil";
-    private static final int[] STAGE_BIOMASS = {0, 60, 160, 320};
+    private static final int[] STAGE_BIOMASS = {0, 60, 160, 320, 560, 900, 1400, 2100, 3000}; // stages 4-8 keep evolving past class 3
 
     private static final EntityDataAccessor<Integer> ATTACK = SynchedEntityData.defineId(CarrionEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> STAGE = SynchedEntityData.defineId(CarrionEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> TETHER = SynchedEntityData.defineId(CarrionEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> TKIND = SynchedEntityData.defineId(CarrionEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> CLIMB = SynchedEntityData.defineId(CarrionEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HARDENED = SynchedEntityData.defineId(CarrionEntity.class, EntityDataSerializers.BOOLEAN);
 
     // client: when the current attack animation started
@@ -84,7 +86,7 @@ public class CarrionEntity extends Monster {
     @Override protected void defineSynchedData() {
         super.defineSynchedData();
         entityData.define(ATTACK, 0); entityData.define(STAGE, 0); entityData.define(TETHER, -1);
-        entityData.define(TKIND, 0); entityData.define(HARDENED, false);
+        entityData.define(TKIND, 0); entityData.define(HARDENED, false); entityData.define(CLIMB, false);
     }
 
     @Override protected void registerGoals() {
@@ -131,9 +133,13 @@ public class CarrionEntity extends Monster {
     public int getStage() { return entityData.get(STAGE); }
     public int getTether() { return entityData.get(TETHER); }
     public int getTetherKind() { return entityData.get(TKIND); }
+    public boolean isClimbing() { return entityData.get(CLIMB); }
+    /** Moves by sticking tentacles to walls and floors: it climbs any surface. */
+    @Override protected net.minecraft.world.entity.ai.navigation.PathNavigation createNavigation(Level l) { return new net.minecraft.world.entity.ai.navigation.WallClimberNavigation(this, l); }
+    @Override public boolean onClimbable() { return isClimbing(); }
     public boolean isHardened() { return entityData.get(HARDENED); }
     public float attackProgress(float age) { return getAtk() == NONE ? 0 : age - atkStartAge; }
-    public float scale() { return 1f + 0.38f * getStage(); }
+    public float scale() { int st = getStage(); return 1f + 0.38f * Math.min(st, 3) + 0.25f * Math.max(0, st - 3); }
     public double dmg(double mult) { return getAttributeValue(Attributes.ATTACK_DAMAGE) * mult * (1 + 0.22 * getStage()) * (ambush ? 1.5 : 1); }
 
     /** Hydrophilia: in water the mass breaks into a swarm of worms and shrinks to slip through tight gaps. */
@@ -142,6 +148,7 @@ public class CarrionEntity extends Monster {
     public float swarm(float pt) { return Mth.lerp(pt, morphO, morph); }
     @Override public void tick() {
         super.tick();
+        if (!level().isClientSide) entityData.set(CLIMB, horizontalCollision);
         morphO = morph; morph += ((isInWater() ? 1f : 0f) - morph) * .2f;
         if (morphed != morph > .5f) { morphed = morph > .5f; refreshDimensions(); }
     }
@@ -328,7 +335,7 @@ public class CarrionEntity extends Monster {
     private void tickWeb() {
         if (webTicks <= 0) return;
         webTicks--;
-        if (webTarget == null || !webTarget.isAlive() || webTarget.level() != level() || getAtk() == GRAB || getAtk() == CONSUME) { webTicks = 0; }
+        if (webTarget == null || !webTarget.isAlive() || webTarget.level() != level() || isGrab(getAtk())) { webTicks = 0; }
         else {
             Vec3 d = position().add(0, .4, 0).subtract(webTarget.position());
             double len = d.length();
@@ -362,10 +369,10 @@ public class CarrionEntity extends Monster {
         entityData.set(ATTACK, id);
         atkTick = 0; lastAtk = id; hit.clear();
         // ambush: striking out of the cloak
-        ambush = cloakTicks > 0 && (id == LASH || id == GRAB || id == LUNGE || id == CONSUME);
+        ambush = cloakTicks > 0 && (id == LASH || isGrab(id) || id == LUNGE);
         if (id != WEB && id != MIND && id != SPIT && id != HARDEN && id != ROAR && id != BURST) uncloak();
         else if (id == BURST || id == ROAR) uncloak();
-        if (id == GRAB || id == CONSUME) webTicks = 0;
+        if (isGrab(id)) webTicks = 0;
     }
 
     private void endAttack() {
@@ -396,14 +403,14 @@ public class CarrionEntity extends Monster {
         float hp = getHealth() / getMaxHealth();
         if (!enraged && hp < .5f) { enraged = true; startAttack(ROAR); return; }
         if (!enraged2 && hp < .2f) { enraged2 = true; startAttack(ROAR); return; }
-        int[] w = new int[15]; int st = getStage();
+        int[] w = new int[17]; int st = getStage();
         int near = countEnemies(4.5 * s);
         if (d < 5.2 * s) {
-            w[LASH] = 6; w[GRAB] = 3;
+            w[LASH] = 6; w[GRAB] = 3; w[BITE] = 4; w[WALLSLAM] = 4;
             if ((near >= 2 || hp < .5f) && st >= 1 && energy >= 35) w[BURST] = 5; // Acanthosis
             if (canConsume(t) && d < 4 * s) w[CONSUME] = 12;
         } else if (d < 9 * s) {
-            w[GRAB] = 3; w[LUNGE] = 4; w[WEB] = 3; w[SPIT] = 3;
+            w[GRAB] = 3; w[LUNGE] = 4; w[WEB] = 3; w[SPIT] = 3; w[BITE] = 2; w[WALLSLAM] = 2;
             if (st >= 1) w[DASH] = 5;
             if (st >= 2) w[HARPOON] = 5;
         } else if (d < 22) {
@@ -448,6 +455,8 @@ public class CarrionEntity extends Monster {
             case DASH -> dash();
             case HARPOON -> harpoon();
             case ECHO -> echo();
+            case BITE -> bite(t);
+            case WALLSLAM -> grab(t, false);
             case PARASITE -> parasite();
         }
         atkTick++;
@@ -507,6 +516,7 @@ public class CarrionEntity extends Monster {
         }
         if (atkTick < 12) return;
         Vec3 f = front();
+        if (getAtk() == WALLSLAM) { wallSlam(f, s); return; }
         if (!eat) {
             double lift;
             if (atkTick < 28) lift = Mth.lerp(ease((atkTick - 12) / 16f), .2, 2.6 * s);
@@ -552,6 +562,89 @@ public class CarrionEntity extends Monster {
                 else knock(victim, f, 1.4, .3);
             }
         }
+    }
+
+    // ---------- bite: tendril hauls the victim into the maw, then a guaranteed bite ----------
+    private void bite(LivingEntity t) {
+        double s = scale(); Vec3 f = front();
+        if (atkTick == 0) {
+            if (t == null) { endAttack(); return; }
+            entityData.set(TETHER, t.getId()); entityData.set(TKIND, T_FLESH);
+            snd(SoundEvents.HONEY_BLOCK_SLIDE, 1.2f, .5f);
+        }
+        if (atkTick == 12) {
+            if (t == null || !t.isAlive() || distanceToSqr(t) > Mth.square(9 * s)) { snd(SoundEvents.SLIME_SQUISH_SMALL, 1f, .5f); cooldown = 8; endAttack(); return; }
+            victim = t; if (victim instanceof Mob m) m.setTarget(null);
+            snd(SoundEvents.SLIME_ATTACK, 1.2f, .5f);
+        }
+        if (atkTick < 12) return;
+        if (victim == null || !victim.isAlive()) { victim = null; atkTick = LEN[BITE]; return; }
+        double q = ease((atkTick - 12) / 12f);
+        Vec3 maw = position().add(f.scale(Mth.lerp(q, 1.9 * s, 1.4 * s))).add(0, Mth.lerp(q, 1.2 * s, .65 * s), 0);
+        if (atkTick < 48) holdVictim(maw.add(0, Math.sin(atkTick * 2.1) * .05, 0));
+        if (atkTick == 46) { // the bite always lands
+            float mh = victim.getMaxHealth();
+            victim.invulnerableTime = 0;
+            victim.hurt(damageSources().mobAttack(this), (float) dmg(2.4));
+            heal((float) dmg(.4));
+            snd(SoundEvents.GENERIC_EAT, 1.6f, .45f); snd(SoundEvents.SLIME_ATTACK, 1.2f, .4f);
+            blood(maw.x, maw.y, maw.z, 18, .3, .1);
+            if (!victim.isAlive()) { addBiomass((int) mh); snd(SoundEvents.PLAYER_BURP, 1f, .4f); }
+            else knock(victim, f, 1.2, .3);
+        }
+    }
+
+    // ---------- wall/floor slam ----------
+    private Vec3 wallTarget = Vec3.ZERO;
+    private net.minecraft.core.BlockPos wallBlock = net.minecraft.core.BlockPos.ZERO;
+
+    private void pickSurface() {
+        double s = scale(); Vec3 eye = position().add(0, 1.0 * s, 0); double best = 1e9;
+        wallTarget = null;
+        for (int k = 0; k < 8; k++) {
+            Vec3 d = Vec3.directionFromRotation(0, yBodyRot + k * 45);
+            var hit = level().clip(new net.minecraft.world.level.ClipContext(eye, eye.add(d.scale(7 * s)), net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, this));
+            if (hit.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK || !hit.getDirection().getAxis().isHorizontal()) continue;
+            double dist = hit.getLocation().distanceTo(eye);
+            if (dist > 2.2 * s && dist < best) {
+                best = dist; wallBlock = hit.getBlockPos();
+                wallTarget = hit.getLocation().add(hit.getDirection().getStepX() * .55, -victim.getBbHeight() * .5, hit.getDirection().getStepZ() * .55);
+            }
+        }
+        if (wallTarget == null) { wallTarget = position().add(front().scale(2.4 * s)); wallBlock = net.minecraft.core.BlockPos.containing(wallTarget).below(); } // floor
+    }
+
+    private void wallImpact(double mult) {
+        victim.invulnerableTime = 0;
+        victim.hurt(damageSources().mobAttack(this), (float) dmg(mult));
+        var st = level().getBlockState(wallBlock);
+        sl().sendParticles(new net.minecraft.core.particles.BlockParticleOption(ParticleTypes.BLOCK, st), victim.getX(), victim.getY() + victim.getBbHeight() * .5, victim.getZ(), 30, .5, .5, .5, .15);
+        blood(victim.getX(), victim.getY() + victim.getBbHeight() * .5, victim.getZ(), 20, .5, .2);
+        snd(SoundEvents.GENERIC_EXPLODE, 1f, .7f); snd(SoundEvents.ANVIL_LAND, 1f, .5f);
+        if (net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(level(), this)) {
+            float h = st.getDestroySpeed(level(), wallBlock);
+            if (h >= 0 && h <= 2.0f) level().destroyBlock(wallBlock, true, this);
+        }
+    }
+
+    private static Vec3 lerpV(double t, Vec3 a, Vec3 b) { return a.add(b.subtract(a).scale(t)); }
+
+    /** Hoist, then smash the victim into the nearest wall (or the floor) twice. */
+    private void wallSlam(Vec3 f, double s) {
+        if (victim == null || !victim.isAlive()) return;
+        Vec3 hold = position().add(f.scale(1.7 * s)).add(0, 2.6 * s, 0);
+        if (atkTick == 28) pickSurface();
+        Vec3 mid = lerpV(.45, wallTarget, hold);
+        if (atkTick < 28) holdVictim(position().add(f.scale(1.7 * s)).add(0, Mth.lerp(ease((atkTick - 12) / 16f), .2, 2.6 * s), 0));
+        else if (atkTick < 40) {
+            holdVictim(hold.add(0, Math.sin(atkTick * 1.3) * .12, 0));
+            if (atkTick % 6 == 4) { victim.hurt(damageSources().mobAttack(this), (float) dmg(.25)); snd(SoundEvents.SLIME_SQUISH, 1f, .35f); }
+        }
+        else if (atkTick < 47) holdVictim(lerpV(ease((atkTick - 40) / 7f), hold, wallTarget));
+        else if (atkTick < 51) holdVictim(lerpV(ease((atkTick - 47) / 4f), wallTarget, mid));
+        else if (atkTick < 55) holdVictim(lerpV(ease((atkTick - 51) / 4f), mid, wallTarget));
+        if (atkTick == 47) wallImpact(1.2);
+        if (atkTick == 55) { wallImpact(1.7); knock(victim, f.scale(-1), .6, .3); }
     }
 
     private static float ease(float x) { x = Mth.clamp(x, 0, 1); return x * x * (3 - 2 * x); }

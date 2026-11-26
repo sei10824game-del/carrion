@@ -25,7 +25,7 @@ Growth: 4 stages (bigger, tougher, stronger) from eating/killing. Spawn egg in t
 Build: `gradle build` (JDK 21 toolchain, Java 17 bytecode). Jar: `build/libs/carrion-1.0.0.jar`.
 
 ## Biomass classes & energy
-- Class 1 (0-59 biomass): web, cloak, lash, grab, spit, lunge. Class 2 (60+): + spine burst, slash dash, mind control. Class 3 (160+): + harpoon vortex, carapace. Stage 4 (320+) is the largest.
+- Class 1 (0-59 biomass): web, cloak, lash, grab, spit, lunge. Class 2 (60+): + spine burst, slash dash, mind control. Class 3 (160+): + harpoon vortex, carapace. Growth does not stop at class 3: stages 4-8 (320, 560, 900, 1400, 2100, 3000 biomass) keep getting bigger (up to ~3.4x), tougher (+60 HP/stage) and stronger (+22% damage/stage).
 - Defensive skills (cloak 25, burst 35, carapace 35) cost energy, which recharges over time; the cap grows with class.
 - Biomass comes from kills and from reabsorbing meat/rotten flesh drops. Fire resistance grows with class.
 - Spawns are mostly class 1, rarely a giant.
@@ -49,3 +49,5 @@ Any block can be a hive or a cocoon: edit the tags `data/carrion/tags/blocks/hiv
 - **Turbine** block (Building Blocks tab): animated spinning blades; 6 damage on contact to anything, and strips an active carapace of all energy. Mobs path around it.
 - **Parasite Spore** (Ingredients tab): right-click any mob to make it your thrall for 5 minutes; it follows you and attacks what you attack. (Direct control of a mob is not implemented.)
 - **Acid Immunity** (class 2+): immune to poison, halves magic damage. Thermovision is folded into Echolocation (outlines all living things and meat).
+- **Bite**: a tendril hauls the victim into the maw for a guaranteed bite (ignores hit-immunity frames). **Wall Slam**: hoists the victim and smashes it twice into the nearest wall (or the floor), breaking soft blocks.
+- **Movement**: no stepping; tentacles reach, stick to the surface and haul the body forward. It climbs walls and ceilings-edges like a spider.
